@@ -12,8 +12,8 @@ mkdir g/lane1/MultiCodeOut
 for sample in `cat samples.txt`
 do
   pigz -d g/lane1/${sample}_L001_R1_001.fastq.gz
-  perl MultiCodes -out g/lane1/MultiCounts/${sample} \
+  perl MultiCodes.pl -out g/lane1/MultiCounts/${sample} \
   -index ${sample} \
-  < bin/g/lane1/${sample}_L001_R1_001.fastq> MultiCodeOut/${sample}.out 2> MultiCodeOut/${sample}.err
+  < bin/g/lane1/${sample}_L001_R1_001.fastq
   pigz g/lane1/${sample}_L001_R1_001.fastq
 done
