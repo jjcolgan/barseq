@@ -9,4 +9,4 @@
 
 python3 /home/jjcolgan/bethaBarseqRepo/barcodeinclusion.py -k /project/blekhman/jjcolgan/barseq/bin/key.txt \
 --sequencemodel 5:20 CAGCGTACG AGAGACCTCG \
--o /project/blekhman/jjcolgan/barseq/bin/g/lane1/MultiCounts/inclusionTable -s 5:20 CAGCGTACG AGAGACCTCG
+-o /project/blekhman/jjcolgan/barseq/bin/g/lane1/MultiCounts/inclusionTable
