@@ -1,6 +1,6 @@
 library(tidyverse)
 library(ggpubr)
-library()
+library(Maaslin2)
 metadata = read_tsv('fullbarseqMeta.txt')
 counts=read_tsv('lane1Counts/combine.poolcount')
 counts=counts[c(1,6:25)]
@@ -116,9 +116,176 @@ locusFintessScores$x %>%
   geom_point()
 
 
+largeIntestinalSamples<-metadata %>%
+  filter(tissue =='colon') %>%
+  .$sample
+#there is probably an easier way to do this
+d1D3FitnessScores<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% largeIntestinalSamples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()%>%
+  prcomp(center = TRUE,
+         scale = TRUE)
+d1D3FitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             col = day,
+             y = PC2))+
+  geom_point()
+
 smallIntestinalSamples<-metadata %>%
   filter(tissue =='dj') %>%
   .$sample
+#there is probably an easier way to do this
+d1D3FitnessScores<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% smallIntestinalSamples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()%>%
+  prcomp(center = TRUE,
+         scale = TRUE)
+d1D3FitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             col = day,
+             y = PC2))+
+  geom_point()
 
-fitnessScoresLoci%>%
-  select(all_of(smallIntestinalSamples))
+maaslin2SiFitness<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% smallIntestinalSamples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()
+maaslin2SiMetadata<-metadata%>%
+  filter(tissue == 'dj')%>%
+  column_to_rownames('sample')
+
+fit_data = Maaslin2(
+  input_data = maaslin2SiFitness,
+  input_metadata = maaslin2SiMetadata,
+  output = "day1Vday2Maaslin",
+  normalization = 'none',
+  transform = 'none',
+  fixed_effects = c("day"))
+
+maaslin2CoFitness<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% largeIntestinalSamples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()
+maaslin2CoMetadata<-metadata%>%
+  filter(tissue == 'colon')%>%
+  column_to_rownames('sample')
+fit_data = Maaslin2(
+  input_data = maaslin2CoFitness,
+  input_metadata = maaslin2CoMetadata,
+  output = "day1Vday2MaaslinColon",
+  normalization = 'none',
+  transform = 'none',
+  fixed_effects = c("day"))
+
+
+day1Samples<-metadata %>%
+  filter(day =='day1') %>%
+  .$sample
+#there is probably an easier way to do this
+d1FitnessScores<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% day1Samples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()%>%
+  prcomp(center = TRUE,
+         scale = TRUE)
+summary(d1FitnessScores)
+d1FitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             label = sample,
+             col = tissue,
+             y = PC2))+
+  geom_point()
+
+maaslin2Day1Fitness<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% day1Samples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()
+maaslin2CoMetadata<-metadata%>%
+  filter(day == 'day1')%>%
+  column_to_rownames('sample')
+fit_data = Maaslin2(
+  input_data = maaslin2Day1Fitness,
+  input_metadata = maaslin2CoMetadata,
+  output = "day1DjVColon",
+  normalization = 'none',
+  transform = 'none',
+  fixed_effects = c("tissue"))
+
+day3Samples<-metadata %>%
+  filter(day =='day3') %>%
+  .$sample
+#there is probably an easier way to do this
+d3FitnessScores<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% day3Samples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()%>%
+  prcomp(center = TRUE,
+         scale = TRUE)
+summary(d3FitnessScores)
+d3FitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             label = sample,
+             col = tissue,
+             y = PC2))+
+  geom_point()
+
+maaslin2Day1Fitness<-fitnessScoresLoci %>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  filter(sample %in% day1Samples)%>%
+  column_to_rownames('sample')%>%
+  as.data.frame()
+maaslin2CoMetadata<-metadata%>%
+  filter(day == 'day1')%>%
+  column_to_rownames('sample')
+fit_data = Maaslin2(
+  input_data = maaslin2Day1Fitness,
+  input_metadata = maaslin2CoMetadata,
+  output = "day1DjVColon",
+  normalization = 'none',
+  transform = 'none',
+  fixed_effects = c("tissue"))
