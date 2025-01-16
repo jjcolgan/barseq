@@ -29,31 +29,37 @@ fullLocusFitnessScores$x %>%
 
 
 fullLocusFitnessScoresColon<-fullLocusFitnessTransposed %>%
-  filter(tissue == 'colon') %>%
+  filter(tissue == 'colon' | tissue == 'T0') %>%
   pivot_wider(names_from = locusId,id_cols = sample, values_from =  fitnessScore) %>%
   column_to_rownames('sample')%>%
   prcomp()
 summary(fullLocusFitnessScoresColon)
+
 fullLocusFitnessScoresColon$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   merge(metadata, by = 'sample') %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
   geom_point()+
-  stat_ellipse()
+  labs(title = 'Gene fitness PCA Colon',
+       x = 'PC1 45.9% var',
+       y = 'PC2 29.0% var')
 
 fullLocusFitnessScoresDj=fullLocusFitnessTransposed %>%
-  filter(tissue == 'dj') %>%
+  filter(tissue == 'dj'| tissue == 'T0') %>%
   pivot_wider(names_from = locusId,id_cols = sample, values_from =  fitnessScore) %>%
   column_to_rownames('sample')%>%
   prcomp()
-summary(fullLocusFitnessScores)
+summary(fullLocusFitnessScoresDj)
 fullLocusFitnessScoresDj$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   merge(metadata, by = 'sample') %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
-  geom_point()
+  geom_point()+
+  labs(title = 'Gene fitness PCA SI',
+       x = 'PC1 39.1% var',
+       y = 'PC2 26.4% var')
 
 
 maaslinDataSI<-fullLocusFitnessTransposed %>%
@@ -126,7 +132,16 @@ siSigNegatveFitness = siMaaslinResWithFunctions %>%
 coSigNegatveFitness = coMaaslinResWithFunctions %>%
   filter(coef < 0)
 
-
-intersect(sigNegatveFitness$locusId,
+#319 low fitness mutants shared between conditions over time
+intersect(siSigNegatveFitness$locusId,
           coSigNegatveFitness$locusId)%>%
   length()
+
+sharedLowFitness<-intersect(sigNegatveFitness$locusId,
+          coSigNegatveFitness$locusId)
+
+siSigNegatveFitness %>%
+  filter(!locusId %in% sharedLowFitness)
+
+coSigNegatveFitness %>%
+  filter(!locusId %in% sharedLowFitness)
