@@ -1,7 +1,10 @@
 library(tidyverse)
 library(ggpubr)
 library(Maaslin2)
+library(ComplexHeatmap)
 metadata = read_tsv('fullbarseqMeta.txt')
+metadata<-metadata %>%
+  mutate('dayTissue' = paste0(day, tissue))
 counts=read_tsv('lane1Counts/combine.poolcount')
 counts=counts[c(1,6:25)]
 counts =counts %>%
@@ -23,11 +26,7 @@ barseqScores$x %>%
              y = PC2))+
   geom_point()
 'There are 3 samples missing from the colonic groups, and 1 from the small intestine. '
-barseqScores$x %>%
-  as.data.frame()%>%
-  rownames_to_column('sample') %>%
-  left_join(metadata, by = 'sample')%>%
-  view()
+
 
 strainFitness = read_tsv('lane1Counts/barseqResults/strain_fit.tab')
 strainFitnessFiltered=strainFitness %>%
@@ -78,8 +77,8 @@ pcaData %>%
              y = PC2))+
   geom_point()
 
-fitnessScores = read_tsv('lane1Counts/barseqResults/fit_t.tab')
-fitnessScoresLoci= fitnessScores[c(1, 4:23)]
+fitnessSCoresLociFull = read_tsv('lane1Counts/barseqResults/fit_t.tab')
+fitnessScoresLoci= fitnessSCoresLociFull[c(1, 4:23)]
 fitnessScoresLoci=fitnessScoresLoci%>%
   select(!'EC-CG-2s-pl1-Filler68')
 fitnessScoresLociTransposed<-fitnessScoresLoci %>%
@@ -87,7 +86,7 @@ fitnessScoresLociTransposed<-fitnessScoresLoci %>%
   t()
 
 locusFintessScores<-fitnessScoresLociTransposed %>%
-  prcomp(center =TRUE, scale = TRUE)
+  prcomp(center =TRUE)
 summary(locusFintessScores)
 locusFintessScores$x %>%
   as.data.frame()%>%
@@ -103,6 +102,20 @@ locusFintessScores$x %>%
        y = 'PC2 -17.11% of variance',
        x = 'PC1 - 22.39% of variance')
 
+locusFintessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample') %>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             col = dayTissue,
+             label = sample,
+             y = PC2))+
+  geom_point()+
+  labs(title = 'locus fitness PCA',
+       y = 'PC2 -17.11% of variance',
+       x = 'PC1 - 22.39% of variance')+
+  stat_ellipse(level = .9)
+
 
 locusFintessScores$x %>%
   as.data.frame()%>%
@@ -114,7 +127,6 @@ locusFintessScores$x %>%
              shape = day,
              y = PC3))+
   geom_point()
-
 
 largeIntestinalSamples<-metadata %>%
   filter(tissue =='colon') %>%
@@ -174,13 +186,13 @@ maaslin2SiMetadata<-metadata%>%
   filter(tissue == 'dj')%>%
   column_to_rownames('sample')
 
-fit_data = Maaslin2(
-  input_data = maaslin2SiFitness,
-  input_metadata = maaslin2SiMetadata,
-  output = "day1Vday2Maaslin",
-  normalization = 'none',
-  transform = 'none',
-  fixed_effects = c("day"))
+# fit_data = Maaslin2(
+#   input_data = maaslin2SiFitness,
+#   input_metadata = maaslin2SiMetadata,
+#   output = "day1Vday2Maaslin",
+#   normalization = 'none',
+#   transform = 'none',
+#   fixed_effects = c("day"))
 
 maaslin2CoFitness<-fitnessScoresLoci %>%
   column_to_rownames('locusId')%>%
@@ -193,13 +205,13 @@ maaslin2CoFitness<-fitnessScoresLoci %>%
 maaslin2CoMetadata<-metadata%>%
   filter(tissue == 'colon')%>%
   column_to_rownames('sample')
-fit_data = Maaslin2(
-  input_data = maaslin2CoFitness,
-  input_metadata = maaslin2CoMetadata,
-  output = "day1Vday2MaaslinColon",
-  normalization = 'none',
-  transform = 'none',
-  fixed_effects = c("day"))
+# fit_data = Maaslin2(
+#   input_data = maaslin2CoFitness,
+#   input_metadata = maaslin2CoMetadata,
+#   output = "day1Vday2MaaslinColon",
+#   normalization = 'none',
+#   transform = 'none',
+#   fixed_effects = c("day"))
 
 
 day1Samples<-metadata %>%
@@ -238,13 +250,13 @@ maaslin2Day1Fitness<-fitnessScoresLoci %>%
 maaslin2CoMetadata<-metadata%>%
   filter(day == 'day1')%>%
   column_to_rownames('sample')
-fit_data = Maaslin2(
-  input_data = maaslin2Day1Fitness,
-  input_metadata = maaslin2CoMetadata,
-  output = "day1DjVColon",
-  normalization = 'none',
-  transform = 'none',
-  fixed_effects = c("tissue"))
+# fit_data = Maaslin2(
+#   input_data = maaslin2Day1Fitness,
+#   input_metadata = maaslin2CoMetadata,
+#   output = "day1DjVColon",
+#   normalization = 'none',
+#   transform = 'none',
+#   fixed_effects = c("tissue"))
 
 day3Samples<-metadata %>%
   filter(day =='day3') %>%
@@ -276,16 +288,43 @@ maaslin2Day1Fitness<-fitnessScoresLoci %>%
   t()%>%
   as.data.frame()%>%
   rownames_to_column('sample') %>%
-  filter(sample %in% day1Samples)%>%
+  filter(sample %in% day3Samples)%>%
   column_to_rownames('sample')%>%
   as.data.frame()
 maaslin2CoMetadata<-metadata%>%
-  filter(day == 'day1')%>%
+  filter(day == 'day3')%>%
   column_to_rownames('sample')
-fit_data = Maaslin2(
-  input_data = maaslin2Day1Fitness,
-  input_metadata = maaslin2CoMetadata,
-  output = "day1DjVColon",
-  normalization = 'none',
-  transform = 'none',
-  fixed_effects = c("tissue"))
+# fit_data = Maaslin2(
+#   input_data = maaslin2Day1Fitness,
+#   input_metadata = maaslin2CoMetadata,
+#   output = "day3DjVColon",
+#   normalization = 'none',
+#   transform = 'none',
+#   fixed_effects = c("tissue"))
+
+fitnessScoresLoci %>%
+  column_to_rownames('locusId') %>%
+  as.matrix()%>%
+  Heatmap(show_row_names = FALSE)
+
+fitnessSCoresLociFullLongMetaMerged<-fitnessSCoresLociFull %>%
+  pivot_longer(cols = 4:23,
+               names_to = 'sample') %>%
+  merge(metadata, by = 'sample')
+
+
+
+fitnessSCoresLociFullLongMetaMerged %>%
+  group_by(day,tissue,locusId)%>%
+  summarise(meanLocusFitness=mean(value))%>%
+  ggplot(aes(x = day,
+             group = locusId,
+             y = meanLocusFitness))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(~tissue,
+             scales = 'free_x')
+
+fitnessSCoresLociFull%>%
+  filter(locusId =='BBR_RS12510')%>%
+  select('desc')
