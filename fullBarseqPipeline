@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --account=pi-blekhman
+#SBATCH --ntasks=32
+#SBATCH --mem=48G
+#SBATCH --err=fullbarseq.err
+#SBATCH --out=fullbarseq.out
+#SBATCH --job-name=fullbarseq
+#SBATCH --partition=blekhman
+
+module load R
+module load parallel
+cat samples.txt | parallel -j 4 --bar '
+  pigz -d g/full/{}_R1_001.fastq.gz;
+  perl MultiCodes.pl -out g/full/{} \
+  -index {} \
+  < g/full/{}_R1_001.fastq \
+  > g/full/{}.out 2> g/full/{}.err;
+  pigz g/full/{}_R1_001.fastq
+'
+
+list=$(
+for file in $(find g/full/-name '*.codes'); do
+	echo $file
+done
+)
+perl combineBarSeq.pl g/full/combine pool ${list}
+
+perl BarSeqR.pl -org full

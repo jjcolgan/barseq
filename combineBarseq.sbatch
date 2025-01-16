@@ -12,4 +12,4 @@ for file in $(find /project/blekhman/jjcolgan/barseq/bin/g/lane1/MultiCounts -na
 	echo $file
 done
 )
-perl combineBarSeq.pl /project/blekhman/jjcolgan/barseq/bin/g/combine/ /project/blekhman/jjcolgan/barseq/bin/g/lane1/mappedInserts/ ${list}
+perl combineBarSeq.pl /project/blekhman/jjcolgan/barseq/bin/g/combine/ pool ${list}

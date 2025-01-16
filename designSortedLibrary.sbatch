@@ -6,6 +6,6 @@
 #SBATCH --out=designSortedLibrary.out
 #SBATCH --job-name=designSortedLibrary
 #SBATCH --partition=blekhman
-
+# This bs did not work
 python3 /home/jjcolgan/bethaBarseqRepo/insertionlookup.py --input /project/blekhman/jjcolgan/barseq/bin/g/lane1/mappedInserts/tncounts \
 --Nmin 10 --output /project/blekhman/jjcolgan/barseq/bin/g/bBreve/lookuptable
