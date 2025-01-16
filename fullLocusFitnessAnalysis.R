@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggpubr)
 library(Maaslin2)
+library(ComplexHeatmap)
 
 fullLocusFitness<-read_tsv('full/fit_t.tab')
 metadata = read_tsv('fullbarseqMeta.txt')
@@ -20,12 +21,22 @@ fullLocusFitnessScores<-fullLocusFitnessTransposed %>%
   pivot_wider(names_from = locusId,id_cols = sample, values_from =  fitnessScore) %>%
   column_to_rownames('sample')%>%
   prcomp()
+summary(fullLocusFitnessScores)
 fullLocusFitnessScores$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   merge(metadata, by = 'sample') %>%
   ggplot(aes(x = PC1, y = PC2, col = tissue,shape = day, label = sample))+
-  geom_point()
+  geom_point()+
+  labs(title = 'Gene fitness PCA SI vs LI',
+       x = 'PC1 39.1% var',
+       y = 'PC2 26.4% var')
+
+fullLocusFitnessTransposed %>%
+  pivot_wider(names_from = sample,id_cols = locusId, values_from =  fitnessScore) %>%
+  column_to_rownames('locusId')%>%
+  as.matrix()%>%
+  Heatmap(show_row_names = F)
 
 
 fullLocusFitnessScoresColon<-fullLocusFitnessTransposed %>%
@@ -45,6 +56,13 @@ fullLocusFitnessScoresColon$x %>%
        x = 'PC1 45.9% var',
        y = 'PC2 29.0% var')
 
+fullLocusFitnessTransposed %>%
+  filter(tissue == 'colon' | tissue == 'T0') %>%
+  pivot_wider(names_from = sample,id_cols = locusId, values_from =  fitnessScore) %>%
+  column_to_rownames('locusId')%>%
+  as.matrix()%>%
+  Heatmap(show_row_names = F)
+
 fullLocusFitnessScoresDj=fullLocusFitnessTransposed %>%
   filter(tissue == 'dj'| tissue == 'T0') %>%
   pivot_wider(names_from = locusId,id_cols = sample, values_from =  fitnessScore) %>%
@@ -60,6 +78,13 @@ fullLocusFitnessScoresDj$x %>%
   labs(title = 'Gene fitness PCA SI',
        x = 'PC1 39.1% var',
        y = 'PC2 26.4% var')
+
+fullLocusFitnessTransposed %>%
+  filter(tissue == 'dj' | tissue == 'T0') %>%
+  pivot_wider(names_from = sample,id_cols = locusId, values_from =  fitnessScore) %>%
+  column_to_rownames('locusId')%>%
+  as.matrix()%>%
+  Heatmap(show_row_names = F)
 
 
 maaslinDataSI<-fullLocusFitnessTransposed %>%
