@@ -29,8 +29,8 @@ fullLocusFitnessScores$x %>%
   ggplot(aes(x = PC1, y = PC2, col = tissue,shape = day, label = sample))+
   geom_point()+
   labs(title = 'Gene fitness PCA SI vs LI',
-       x = 'PC1 39.1% var',
-       y = 'PC2 26.4% var')
+       x = 'PC1 46.71% var',
+       y = 'PC2 20.64 var')
 
 fullLocusFitnessTransposed %>%
   pivot_wider(names_from = sample,id_cols = locusId, values_from =  fitnessScore) %>%
@@ -53,8 +53,8 @@ fullLocusFitnessScoresColon$x %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
   geom_point()+
   labs(title = 'Gene fitness PCA Colon',
-       x = 'PC1 45.9% var',
-       y = 'PC2 29.0% var')
+       x = 'PC1 43.79% var',
+       y = 'PC2 26.91% var')
 
 fullLocusFitnessTransposed %>%
   filter(tissue == 'colon' | tissue == 'T0') %>%
@@ -76,8 +76,8 @@ fullLocusFitnessScoresDj$x %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
   geom_point()+
   labs(title = 'Gene fitness PCA SI',
-       x = 'PC1 39.1% var',
-       y = 'PC2 26.4% var')
+       x = 'PC1 50.13% var',
+       y = 'PC2 18.88 var')
 
 fullLocusFitnessTransposed %>%
   filter(tissue == 'dj' | tissue == 'T0') %>%
@@ -162,7 +162,7 @@ intersect(siSigNegatveFitness$locusId,
           coSigNegatveFitness$locusId)%>%
   length()
 
-sharedLowFitness<-intersect(sigNegatveFitness$locusId,
+sharedLowFitness<-intersect(siSigNegatveFitness$locusId,
           coSigNegatveFitness$locusId)
 
 siSigNegatveFitness %>%
