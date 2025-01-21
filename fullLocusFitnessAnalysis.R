@@ -12,6 +12,52 @@ metadata$numericDay[metadata$day== 'day3'] = 3
 metadata$numericDay[metadata$day== 'day 7'] = 7
 metadata$numericDay[metadata$day== 'day 14'] = 14
 
+genes<-read_tsv('full/genes')
+genes$begin = as.integer(genes$begin)
+functions <- read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve barseq/bBreveFunctions.tsv')
+
+kofams=functions %>%
+  filter(source == 'KOfam') %>%
+  dplyr::select(gene_callers_id,
+                `function`,
+                accession) %>%
+  rename('kofamFunction' = `function`,
+         'kofamAccession' = accession)
+
+pfams=functions %>%
+  filter(source == 'Pfam') %>%
+  dplyr::select(gene_callers_id,
+                `function`,
+                accession) %>%
+  rename('pfamFunction' = `function`,
+         'pfamAcession' = accession)
+
+CAZyme=functions %>%
+  filter(source == 'CAZyme') %>%
+  dplyr::select(gene_callers_id,
+                `function`,
+                accession) %>%
+  rename('CAZymeFunction' = `function`,
+         'cazymeAcession' =  accession)
+geneCallers <- read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve barseq/bBreveGeneCalls.tsv')
+geneCallers<-geneCallers %>%
+  rename('begin' = start,
+         'end' = stop)
+geneCallers$begin = geneCallers$begin+1
+
+geneCallersMerge=geneCallers %>%
+  dplyr::select(begin, gene_callers_id, aa_sequence)
+
+geneCallersMerge= geneCallersMerge %>%
+  left_join(kofams, by = 'gene_callers_id') %>%
+  left_join(pfams,  by = 'gene_callers_id')
+
+
+genes = genes %>%
+  left_join(geneCallersMerge, by = 'begin')
+
+write_tsv(genes, 'genesWithAnvioAnnotations.tsv')
+
 metadata$numericDay = as.integer(metadata$numericDay)
 
 metadata=metadata%>%
@@ -161,27 +207,27 @@ maaslinSIMeta=metadata %>%
   filter(tissue == 'dj') %>%
   column_to_rownames('sample')
 
-fit_data = Maaslin2(
-  input_data = maaslinDataSI,
-  input_metadata = maaslinSIMeta,
-  output = "siFitnessScores",
-  normalization = 'none',
-  transform = 'none',
-  min_abundance = 0,
-  min_prevalence = 0,
-  fixed_effects = c("numericDay"),
-  reference = c('day,day1'))
+# fit_data = Maaslin2(
+#   input_data = maaslinDataSI,
+#   input_metadata = maaslinSIMeta,
+#   output = "siFitnessScores",
+#   normalization = 'none',
+#   transform = 'none',
+#   min_abundance = 0,
+#   min_prevalence = 0,
+#   fixed_effects = c("numericDay"),
+#   reference = c('day,day1'))
 
-fit_data = Maaslin2(
-  input_data = maaslinDataSI,
-  input_metadata = maaslinSIMeta,
-  output = "siFitnessScoresCategoricalData",
-  normalization = 'none',
-  transform = 'none',
-  min_abundance = 0,
-  min_prevalence = 0,
-  fixed_effects = c("day"),
-  reference = c('day,day1'))
+# fit_data = Maaslin2(
+#   input_data = maaslinDataSI,
+#   input_metadata = maaslinSIMeta,
+#   output = "siFitnessScoresCategoricalData",
+#   normalization = 'none',
+#   transform = 'none',
+#   min_abundance = 0,
+#   min_prevalence = 0,
+#   fixed_effects = c("day"),
+#   reference = c('day,day1'))
 
 maaslinDataCo<-fullLocusFitnessTransposed %>%
   filter(tissue == 'colon') %>%
@@ -192,15 +238,15 @@ maaslinCoMeta=metadata %>%
   filter(tissue == 'colon') %>%
   column_to_rownames('sample')
 
-fit_data = Maaslin2(
-  input_data = maaslinDataCo,
-  input_metadata = maaslinCoMeta,
-  output = "CoFitnessScores",
-  normalization = 'none',
-  transform = 'none',
-  min_abundance = 0,
-  min_prevalence = 0,
-  fixed_effects = c("numericDay"))
+# fit_data = Maaslin2(
+#   input_data = maaslinDataCo,
+#   input_metadata = maaslinCoMeta,
+#   output = "CoFitnessScores",
+#   normalization = 'none',
+#   transform = 'none',
+#   min_abundance = 0,
+#   min_prevalence = 0,
+#   fixed_effects = c("numericDay"))
 
 fullLocusFitness %>%
   select(locusId, desc)
@@ -209,6 +255,14 @@ coMaaslinResWithFunctions<-coMaaslinRes %>%
   rename('locusId'=feature)%>%
   left_join(select(fullLocusFitness,locusId, desc), by = 'locusId')%>%
   as.data.frame()
+
+coMaaslinResWithFunctions=coMaaslinResWithFunctions %>%
+  merge(genes, by = 'locusId')
+
+coMaaslinResWithFunctions %>%
+  filter(qval < .05) %>%
+  arrange(qval)%>%
+  view()
 
 coMaaslinResWithFunctions$col <- NA
 coMaaslinResWithFunctions$col[coMaaslinResWithFunctions$coef > 0 & coMaaslinResWithFunctions$qval < .05] <- 'Positive correlation'
@@ -243,9 +297,6 @@ siMaaslinResWithFunctions %>%
        alpha = '',
        title = 'Mutations are assoicated with different fitness\
        outcomes temporally in the SI')
-
-siMaaslinResWithFunctions %>%
-  filter(locusId == 'BBR_RS19700')
 
 siSigNegatveFitness = siMaaslinResWithFunctions %>%
   filter(coef < 0,
@@ -284,4 +335,3 @@ day7Scores$x %>%
   merge(metadata, by = 'sample') %>%
   ggplot(aes(x = PC2, y = PC3, col = tissue, shape = day,label = sample))+
   geom_point()
-
