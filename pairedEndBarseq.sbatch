@@ -28,6 +28,6 @@ for file in $(find g/paired/ -name '*.codes'); do
 	echo $file
 done
 )
-perl combineBarSeq.pl g/paried/combine pool ${list}
+perl combineBarSeq.pl g/paired/combine pool ${list}
 
 perl BarSeqR.pl -org paired
