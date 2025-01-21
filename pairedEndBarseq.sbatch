@@ -13,7 +13,7 @@ mkdir g/paired
 cat samples.txt | parallel -j 4 '
   pigz -d g/full/{}_R1_001.fastq.gz;
   pigz -d g/full/{}_R1_002.fastq.gz;
-  cat g/paired/{}*gz > g/paired/{}BothReads.fastq
+  cat g/full/{}*gz > g/paired/{}BothReads.fastq
   perl MultiCodes.pl -out g/paired/{}BothReads \
   -index {} \
   < g/full/{}_R1_001.fastq \
