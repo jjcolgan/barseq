@@ -92,8 +92,21 @@ fullLocusFitnessScores$x %>%
   geom_point()+
   labs(title = 'Gene fitness PCA SI vs LI',
        x = 'PC1 46.71% var',
-       caption = 'p < .001, PERMANOVA\nR^2 = 0.38887',
+       caption = 'p < .001, PERMANOVA\nR^2 = 0.3971',
        y = 'PC2 20.64% var')
+
+fullLocusFitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  ggplot(aes(x = PC1, y = PC2, col = numericDay, label = mouseDayTissue))+
+  geom_point()+
+  labs(title = 'Gene fitness PCA SI vs LI',
+       x = 'PC1 46.71% var',
+       caption = 'p < .001, PERMANOVA\nR^2 = 0.3971',
+       y = 'PC2 20.64% var')
+
+
 
 fullLocusFitnessScoresNoT0<-fullLocusFitnessTransposed %>%
   filter(tissue == 'dj' | tissue == 'colon')%>%
@@ -109,24 +122,104 @@ fullLocusFitnessScoresNoT0$x %>%
   ggplot(aes(x = PC1, y = PC2,
              col = tissueDay,
              label = sample))+
+  geom_point()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC1, y = PC2,
+             col = tissue,
+             label = sample))+
+  geom_point()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC1, y = PC2,
+             col = mouse,
+             group = mouse,
+             label = sample))+
   geom_point()+
-  stat_ellipse()
+  geom_line()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC1, y = PC2,
+             col = day,
+             group = mouse,
+             label = sample))+
+  geom_point()+
+  geom_line()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC2, y = PC3,
+             col = tissue,
+             group = mouse,
+             label = sample))+
+  geom_point()+
+  geom_line()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC2, y = PC3,
+             col = tissue,
+             group = mouse,
+             label = sample))+
+  geom_point()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC2, y = PC3,
+             col = numericDay,
+             group = mouse,
+             shape = tissue,
+             label = sample))+
+  geom_point()
+
+fullLocusFitnessScoresNoT0$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  merge(metadata, by = 'sample') %>%
+  mutate(tissueDay = paste(tissue, day, sep ='-'))%>%
+  ggplot(aes(x = PC3, y = PC4,
+             col = day,
+             group = mouse,
+             shape = tissue,
+             label = sample))+
+  geom_point()
 
 fullLocusFitnessTransposed %>%
   pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
   column_to_rownames('locusId')%>%
   as.matrix()%>%
-  Heatmap(show_row_names = F)
+  Heatmap(show_row_names = F, name = 'Gene fitness\nscore')
 
 fullLocusFitnessTransposed %>%
   pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
   column_to_rownames('locusId')%>%
   scale()%>%
   as.matrix()%>%
-  Heatmap(show_row_names = F)
+  Heatmap(show_row_names = F, name = 'Gene fitness\nscore scaled')
 
 adonisDataColon = fullLocusFitnessTransposed %>%
-  filter(tissue == 'colon' | tissue == 'T0') %>%
+  filter(tissue == 'colon' ) %>%
   pivot_wider(names_from = locusId,id_cols = sample,
               values_from =  fitnessScore)
 
@@ -150,15 +243,17 @@ fullLocusFitnessScoresColon$x %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
   geom_point()+
   labs(title = 'Gene fitness PCA Colon',
-       x = 'PC1 52.72% var',
-       caption = 'p < .001, PERMANOVA\nR^2 = 0.47774',
-       y = 'PC2 14.36% var')
+       x = 'PC1 61.65% var',
+       caption = 'p = .1, PERMANOVA\nR^2 = 0.35823',
+       y = 'PC2 15.23% var')
 
 fullLocusFitnessTransposed %>%
+  filter(tissue == 'colon' | tissue == 'T0')%>%
   pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
   column_to_rownames('locusId')%>%
-  as.matrix()
-  Heatmap(show_row_names = F)
+  as.matrix()%>%
+  Heatmap(show_row_names = F,
+          name = 'Gene fitness\nscores')
 
 
 fullLocusFitnessScoresDj=fullLocusFitnessTransposed %>%
@@ -187,9 +282,10 @@ fullLocusFitnessScoresDj$x %>%
   ggplot(aes(x = PC1, y = PC2, col = day, label = sample))+
   geom_point()+
   labs(title = 'Gene fitness PCA SI',
-       x = 'PC1 54.62% var',
-       caption = 'p = 0.004, PERMANOVA\nR^2 =0.47774',
-       y = 'PC2 16.02% var')
+       x = 'PC1 51.19% var',
+       caption = 'p = 0.077, PERMANOVA\nR^2 =0.30272',
+       y = 'PC2 15.3% var')
+
 
 fullLocusFitnessTransposed %>%
   filter(tissue == 'dj' | tissue == 'T0') %>%
@@ -204,7 +300,8 @@ fullLocusFitnessTransposed %>%
   pivot_wider(names_from = mouseDay,id_cols = locusId, values_from =  fitnessScore) %>%
   column_to_rownames('locusId')%>%
   as.matrix()%>%
-  Heatmap(show_row_names = F)
+  Heatmap(show_row_names = F,
+          name = 'Gene fitness\nscores')
 
 maaslinDataSI<-fullLocusFitnessTransposed %>%
   filter(tissue == 'dj') %>%
@@ -215,7 +312,7 @@ maaslinSIMeta=metadata %>%
   filter(tissue == 'dj') %>%
   column_to_rownames('sample')
 
-# fit_data = Maaslin2(
+#fit_data = Maaslin2(
 #   input_data = maaslinDataSI,
 #   input_metadata = maaslinSIMeta,
 #   output = "siFitnessScores",
@@ -226,16 +323,16 @@ maaslinSIMeta=metadata %>%
 #   fixed_effects = c("numericDay"),
 #   reference = c('day,day1'))
 
-# fit_data = Maaslin2(
-#   input_data = maaslinDataSI,
-#   input_metadata = maaslinSIMeta,
-#   output = "siFitnessScoresCategoricalData",
-#   normalization = 'none',
-#   transform = 'none',
-#   min_abundance = 0,
-#   min_prevalence = 0,
-#   fixed_effects = c("day"),
-#   reference = c('day,day1'))
+fit_data = Maaslin2(
+   input_data = maaslinDataSI,
+   input_metadata = maaslinSIMeta,
+   output = "siFitnessScoresCategoricalData",
+   normalization = 'none',
+   transform = 'none',
+   min_abundance = 0,
+   min_prevalence = 0,
+   fixed_effects = c("day"),
+   reference = c('day,day1'))
 
 maaslinDataCo<-fullLocusFitnessTransposed %>%
   filter(tissue == 'colon') %>%
@@ -246,15 +343,15 @@ maaslinCoMeta=metadata %>%
   filter(tissue == 'colon') %>%
   column_to_rownames('sample')
 
-# fit_data = Maaslin2(
-#   input_data = maaslinDataCo,
-#   input_metadata = maaslinCoMeta,
-#   output = "CoFitnessScores",
-#   normalization = 'none',
-#   transform = 'none',
-#   min_abundance = 0,
-#   min_prevalence = 0,
-#   fixed_effects = c("numericDay"))
+fit_data = Maaslin2(
+   input_data = maaslinDataCo,
+   input_metadata = maaslinCoMeta,
+   output = "CoFitnessScores",
+   normalization = 'none',
+   transform = 'none',
+   min_abundance = 0,
+   min_prevalence = 0,
+   fixed_effects = c("numericDay"))
 
 fullLocusFitness %>%
   select(locusId, desc)
@@ -292,6 +389,10 @@ siMaaslinResWithFunctions<-siMaaslinRes %>%
   rename('locusId'=feature)%>%
   left_join(select(fullLocusFitness,locusId, desc), by = 'locusId')%>%
   as.data.frame()
+
+siMaaslinResWithFunctions=siMaaslinResWithFunctions %>%
+  merge(genes, by = 'locusId')
+
 siMaaslinResWithFunctions$col <- NA
 siMaaslinResWithFunctions$col[siMaaslinResWithFunctions$coef > 0 & siMaaslinResWithFunctions$qval < .05] <- 'Positive correlation'
 siMaaslinResWithFunctions$col[siMaaslinResWithFunctions$coef < 0 & siMaaslinResWithFunctions$qval < .05] <- 'Negative correlation'

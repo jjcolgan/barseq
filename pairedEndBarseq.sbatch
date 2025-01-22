@@ -15,8 +15,8 @@ cat samples.txt | parallel -j 4 '
   cat /project/blekhman/jjcolgan/barseq/00_RAW/20250107_LH00315_0348_A225WL3LT1-EC-CG-2s-pls12/FastX/{}*gz > g/paired/{}BothReads.fastq
   perl MultiCodes.pl -out g/paired/{}BothReads \
   -index {} \
-  < g/full/{}_R1_001.fastq \
-  > g/full/{}.out 2> g/full/{}.err;
+  < g/paired/{}_R1_001.fastq \
+  > g/paired/{}.out 2> g/full/{}.err;
   pigz g/full/{}_R1_001.fastq
   pigz g/full/{}_R1_002.fastq
   pigz g/paired/{}BothReads.fastq
@@ -30,4 +30,4 @@ done
 
 perl combineBarSeq.pl g/paired/combine pool ${list}
 
-perl BarSeqR.pl -org paired
+perl BarSeqR.pl -org paired -indir g/paired

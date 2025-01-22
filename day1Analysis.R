@@ -228,6 +228,12 @@ enrichedFitnessDjSig<-maaslin2Res %>%
   filter(qval < .05,
          coef > 0)
 
+maaslin2Res %>%
+  ggplot(aes(x = coef,
+             y = -log10(qval)))+
+  geom_point()+
+  geom_hline(yintercept = -log10(.05))
+
 #fishers exact test for negative versus positive fitness effects
 'This is probably going to require some more intelligent filtering. I also think in general,
 the effect sizes are quite small, so will be hard to test.'

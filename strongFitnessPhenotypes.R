@@ -5,6 +5,13 @@ library(ComplexHeatmap)
 
 strongFitnessTab=read_tsv('full/strong.tab')
 metadata = read_tsv('fullbarseqMeta.txt')
+metadata$numericDay = 0
+metadata$numericDay[metadata$day== 'day1'] = 1
+metadata$numericDay[metadata$day== 'day3'] = 3
+metadata$numericDay[metadata$day== 'day 7'] = 7
+metadata$numericDay[metadata$day== 'day 14'] = 14
+metadata=metadata%>%
+  mutate(mouseDayTissue = paste(mouse, day, tissue,sep = '-'))
 pcaIn<-strongFitnessTab %>%
   pivot_wider(names_from = locusId,
               id_cols = name,
@@ -20,15 +27,57 @@ summary(strongFitnessScores)
 strongFitnessScores$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
-  merge(metadata, by = 'sample') %>%
+  left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              col = tissue,
              shape = day,
              y = PC2))+
   geom_point()
 
+strongFitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             col = numericDay,
+             y = PC2))+
+  geom_point()
+
+strongFitnessScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             col = mouse,
+             group = mouse,
+             y = PC2))+
+  geom_point()+
+  geom_line()
+
 pcaIn %>%
-  t()%>%
+  rownames_to_column('sample') %>%
+  pivot_longer(cols = c(2:345), names_to = 'gene', values_to = 'fitnessScore')%>%
+  left_join(metadata,by = 'sample')%>%
+  pivot_wider(names_from = mouseDayTissue, id_cols = gene, values_from = fitnessScore)%>%
+  column_to_rownames('gene')%>%
+  Heatmap(show_row_names = FALSE)
+
+pcaIn %>%
+  rownames_to_column('sample') %>%
+  pivot_longer(cols = c(2:345), names_to = 'gene', values_to = 'fitnessScore')%>%
+  left_join(metadata,by = 'sample')%>%
+  filter(tissue != 'colon') %>%
+  pivot_wider(names_from = mouseDayTissue, id_cols = gene, values_from = fitnessScore)%>%
+  column_to_rownames('gene')%>%
+  Heatmap(show_row_names = FALSE)
+
+pcaIn %>%
+  rownames_to_column('sample') %>%
+  pivot_longer(cols = c(2:345), names_to = 'gene', values_to = 'fitnessScore')%>%
+  left_join(metadata,by = 'sample')%>%
+  filter(tissue == 'colon') %>%
+  pivot_wider(names_from = mouseDayTissue, id_cols = gene, values_from = fitnessScore)%>%
+  column_to_rownames('gene')%>%
   Heatmap(show_row_names = FALSE)
 
 tScoresWithMetaLong<-pcaIn %>%
