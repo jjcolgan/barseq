@@ -88,7 +88,7 @@ fullLocusFitnessScores$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   merge(metadata, by = 'sample') %>%
-  ggplot(aes(x = PC1, y = PC2, col = tissue,shape = day, label = sample))+
+  ggplot(aes(x = PC1, y = PC2, col = tissue,shape = day, label = mouseDayTissue))+
   geom_point()+
   labs(title = 'Gene fitness PCA SI vs LI',
        x = 'PC1 46.71% var',
@@ -109,11 +109,19 @@ fullLocusFitnessScoresNoT0$x %>%
   ggplot(aes(x = PC1, y = PC2,
              col = tissueDay,
              label = sample))+
-  geom_point()
+  geom_point()+
+  stat_ellipse()
 
 fullLocusFitnessTransposed %>%
   pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
   column_to_rownames('locusId')%>%
+  as.matrix()%>%
+  Heatmap(show_row_names = F)
+
+fullLocusFitnessTransposed %>%
+  pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
+  column_to_rownames('locusId')%>%
+  scale()%>%
   as.matrix()%>%
   Heatmap(show_row_names = F)
 
