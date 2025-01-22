@@ -4,6 +4,94 @@ library(Maaslin2)
 library(ComplexHeatmap)
 library(vegan)
 
+'This function generates a contingency table with columns "positive" and "negative".
+The function should be used when testing to see if there is a difference in the fitness
+effects regardless of their strength. Thus weak fitness scores |fitnessScore| < 2.5,
+will be tested.'
+genContingecyTableNegativeVersusPositiveSelection = function (geneMat){
+  #input should be the full geneMat with metadata included.
+  tissues=geneMat %>%
+    dplyr::select(tissue) %>%
+    distinct() %>%
+    .$tissue
+  contab = data.frame('positive' = integer(),
+                      'neutral' = integer())
+  for( i in 1:length(tissues)){
+    #find samples with negative effect
+    nPositive = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore > 0) %>%
+      nrow()
+    #find samples with positive effect
+    nNegative = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore < 0) %>%
+      nrow()
+    temp = data.frame('positive' = nPositive,
+                      'negative' = nNegative)
+    row.names(temp) = tissues[i]
+    contab = rbind(contab,
+                   temp)
+  }
+  return(contab)
+}
+
+genContingecyTableNeutralVersusNegative = function (geneMat){
+  #input should be the full geneMat with metadata included.
+  tissues=geneMat %>%
+    dplyr::select(tissue) %>%
+    distinct() %>%
+    .$tissue
+  contab = data.frame('negative' = integer(),
+                      'neutral' = integer())
+  for( i in 1:length(tissues)){
+    #find samples with negative effect
+    nZero = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore == 0) %>%
+      nrow()
+    #find samples with positive effect
+    nNegative = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore < 0) %>%
+      nrow()
+    temp = data.frame('negative' = nNegative,
+                      'neutral' = nZero)
+    row.names(temp) = tissues[i]
+    contab = rbind(contab,
+                   temp)
+  }
+  return(contab)
+}
+
+genContingecyTableNeutralVersusPositive = function (geneMat){
+  #input should be the full geneMat with metadata included.
+  tissues=geneMat %>%
+    dplyr::select(tissue) %>%
+    distinct() %>%
+    .$tissue
+  contab = data.frame('positive' = integer(),
+                      'neutral' = integer())
+  for( i in 1:length(tissues)){
+    #find samples with negative effect
+    nZero = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore == 0) %>%
+      nrow()
+    #find samples with positive effect
+    nPositive = geneMat %>%
+      filter(tissue == tissues[i]) %>%
+      filter(fitnessScore > 0) %>%
+      nrow()
+    temp = data.frame('positive' = nPositive,
+                      'neutral' = nZero)
+    row.names(temp) = tissues[i]
+    contab = rbind(contab,
+                   temp)
+  }
+  return(contab)
+}
+
 fullLocusFitness<-read_tsv('full/fit_t.tab')
 metadata = read_tsv('fullbarseqMeta.txt')
 metadata$numericDay = 0
@@ -86,6 +174,12 @@ fullLocusFitnessTransposedNoT0%>%
   as.matrix()%>%
   Heatmap(show_row_names = F)
 
+fullLocusFitnessTransposedNoT0%>%
+  pivot_wider(names_from = mouseDayTissue,id_cols = locusId, values_from =  fitnessScore) %>%
+  column_to_rownames('locusId')%>%
+  as.matrix()%>%
+  Heatmap(show_row_names = F)
+
 
 meanFitnessScores=fullLocusFitnessTransposedNoT0 %>%
   group_by(tissue, locusId)%>%
@@ -133,3 +227,67 @@ enrichedFitnessColonSig<-maaslin2Res %>%
 enrichedFitnessDjSig<-maaslin2Res %>%
   filter(qval < .05,
          coef > 0)
+
+#fishers exact test for negative versus positive fitness effects
+'This is probably going to require some more intelligent filtering. I also think in general,
+the effect sizes are quite small, so will be hard to test.'
+locusIds=fullLocusFitnessTransposedNoT0 %>%
+  dplyr::select(locusId) %>%
+  distinct() %>%
+  .$locusId
+output = data.frame('gene' = character(),
+                    'pvalue' = double())
+for (i in 1:length(locusIds)){
+  genesOfInterest=fullLocusFitnessTransposedNoT0 %>%
+    filter(locusId == locusIds[i])
+  fisherResults=genesOfInterest %>%
+    genContingecyTableNegativeVersusPositiveSelection()%>%
+    fisher.test()
+
+  temp = data.frame('gene' = locusIds[i],
+                    'pvalue' = fisherResults$p.value)
+  output = rbind(output,
+                  temp)
+
+}
+output %>%
+  filter(pvalue < .01)
+output$padjust = p.adjust(output$pvalue, method = 'BH')
+summary(output$padjust)
+
+'Fishers test neutral versus positive selection.
+Does not look like there is anything that is neutral in one population and beneifical in another.'
+output = data.frame('gene' = character(),
+                    'pvalue' = double())
+for (i in 1:length(locusIds)){
+  genesOfInterest=fullLocusFitnessTransposedNoT0 %>%
+    filter(locusId == locusIds[i])
+  fisherResults=genesOfInterest %>%
+    genContingecyTableNeutralVersusPositive()%>%
+    fisher.test()
+
+  temp = data.frame('gene' = locusIds[i],
+                    'pvalue' = fisherResults$p.value)
+  output = rbind(output,
+                 temp)
+
+}
+
+
+'Fishers negative versus neutral-
+same as above.'
+output = data.frame('gene' = character(),
+                    'pvalue' = double())
+for (i in 1:length(locusIds)){
+  genesOfInterest=fullLocusFitnessTransposedNoT0 %>%
+    filter(locusId == locusIds[i])
+  fisherResults=genesOfInterest %>%
+    genContingecyTableNeutralVersusNegative()%>%
+    fisher.test()
+
+  temp = data.frame('gene' = locusIds[i],
+                    'pvalue' = fisherResults$p.value)
+  output = rbind(output,
+                 temp)
+
+}
