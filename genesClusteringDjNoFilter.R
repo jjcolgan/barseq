@@ -263,3 +263,72 @@ cluster3GeneCategories %>%
   ggplot(aes(x = fct_infreq(subpathwayCleaned),
              fill = superpathwayCleaned))+
   geom_bar()
+
+cluster4Keggs=cluster4 %>%
+  select(kofamAccession)%>%
+  filter(is.na(kofamAccession)== FALSE) %>%
+  distinct()
+
+cluster4GeneCategories=getKeggBrite(cluster4Keggs)
+cluster4GeneCategories=cluster4GeneCategories %>%
+  as.data.frame()
+cluster4GeneCategories$superpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster4GeneCategories$superpathway)
+cluster4GeneCategories %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(superpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()+
+  labs(title = 'Cluster 4 KO Brite superpathway')
+cluster4GeneCategories$subpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster4GeneCategories$subpathway)
+cluster4GeneCategories %>%
+  mutate(subpathwayCleaned = str_wrap(subpathwayCleaned, width = 10)) %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(subpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()
+
+cluster5Keggs=cluster5 %>%
+  select(kofamAccession)%>%
+  filter(is.na(kofamAccession)== FALSE) %>%
+  distinct()
+
+cluster5GeneCategories=getKeggBrite(cluster5Keggs)
+cluster5GeneCategories=cluster5GeneCategories %>%
+  as.data.frame()
+cluster5GeneCategories$superpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster5GeneCategories$superpathway)
+cluster5GeneCategories %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(superpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()+
+  labs(title = 'Cluster 5 KO Brite superpathway')
+cluster5GeneCategories$subpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster5GeneCategories$subpathway)
+cluster5GeneCategories %>%
+  mutate(subpathwayCleaned = str_wrap(subpathwayCleaned, width = 10)) %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(subpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()
+
+cluster6Keggs=cluster6 %>%
+  select(kofamAccession)%>%
+  filter(is.na(kofamAccession)== FALSE) %>%
+  distinct()
+
+cluster6GeneCategories=getKeggBrite(cluster6Keggs)
+cluster6GeneCategories=cluster6GeneCategories %>%
+  as.data.frame()
+cluster6GeneCategories$superpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster6GeneCategories$superpathway)
+cluster6GeneCategories %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(superpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()+
+  labs(title = 'Cluster 6 KO Brite superpathway')
+cluster6GeneCategories$subpathwayCleaned<- sub("^\\s+\\d+\\s+", "", cluster6GeneCategories$subpathway)
+cluster6GeneCategories %>%
+  mutate(subpathwayCleaned = str_wrap(subpathwayCleaned, width = 10)) %>%
+  mutate(superpathwayCleaned = str_wrap(superpathwayCleaned, width = 10)) %>%
+  ggplot(aes(x = fct_infreq(subpathwayCleaned),
+             fill = superpathwayCleaned))+
+  geom_bar()
