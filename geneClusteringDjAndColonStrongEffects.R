@@ -3,6 +3,8 @@ library(ComplexHeatmap)
 
 fullgenesFit = read_tsv('fullGenesTab.tsv')
 
+metadata = read_tsv('fullbarseqMeta.txt')
+
 fitnessScoresMeans=fullgenesFit %>%
   select(sample, locusId, fitnessScore, day, tissue) %>%
   distinct()%>%
