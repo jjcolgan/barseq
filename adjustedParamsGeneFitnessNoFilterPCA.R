@@ -19,13 +19,15 @@ quality = quality %>%
 metadata = metadata %>%
   left_join(quality, by = 'sample')
 
-
-
 pcaOut=fitness %>%
   select(-c(desc,
             sysName))%>%
   column_to_rownames('locusId')%>%
   t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  filter(sample %in% metadata$sample)%>%
+  column_to_rownames('sample')%>%
   prcomp(center = TRUE)
 
 pcaOut$x %>%
@@ -35,7 +37,15 @@ pcaOut$x %>%
   ggplot(aes(x = PC1,
              y = PC2,
              col = tissue))+
+  geom_point()
 
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = as.factor(lane)))+
   geom_point()
 
 pcaOut$x %>%
@@ -221,6 +231,16 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC2,
              y = PC3,
+             col = as.factor(cage)))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
              col = as.factor(cage),
              group = mouse))+
 
@@ -257,6 +277,56 @@ pcaOut$x %>%
   ggplot(aes(x = PC2,
              y = PC3,
              col = log10(millionBases)))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = cor12))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = adjcor))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = mad12))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = gccor))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = u))+
 
   geom_point()
 
@@ -411,6 +481,16 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              y = PC2,
+             col = as.factor(cage)))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
              col = log10(millionBases)))+
 
   geom_point()
@@ -422,6 +502,46 @@ pcaOut$x %>%
   ggplot(aes(x = PC1,
              y = PC2,
              col = meanQualityScore ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = adjcor ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = gccor ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = cor12 ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = mad12 ))+
 
   geom_point()
 
@@ -540,4 +660,40 @@ pcaOut$x %>%
   ggplot(aes(x = PC3,
              y = PC4,
              col = meanQualityScore))+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC3,
+             y = PC4,
+             col = mad12))+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC3,
+             y = PC4,
+             col = gccor))+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC3,
+             y = PC4,
+             col = adjcor))+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC3,
+             y = PC4,
+             col = cor12))+
   geom_point()
