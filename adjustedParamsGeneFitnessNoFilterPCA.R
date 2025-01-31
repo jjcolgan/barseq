@@ -18,7 +18,7 @@ quality = quality %>%
 
 metadata = metadata %>%
   left_join(quality, by = 'sample')
-
+summary(pcaOut)
 pcaOut=fitness %>%
   select(-c(desc,
             sysName))%>%
@@ -37,7 +37,9 @@ pcaOut$x %>%
   ggplot(aes(x = PC1,
              y = PC2,
              col = tissue))+
-  geom_point()
+  geom_point()+
+  labs(x = 'PC1 - 25.43%',
+       y = 'PC2 - 22.75%')
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -54,6 +56,7 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              y = PC2,
+             shape = tissue,
              col = day))+
 
   geom_point()
@@ -430,6 +433,7 @@ pcaOut=fitness %>%
   filter(sample %in% justMouse)%>%
   column_to_rownames('sample')%>%
   prcomp(center = TRUE)
+summary(pcaOut)
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -439,7 +443,10 @@ pcaOut$x %>%
              y = PC2,
              col = tissue))+
 
-  geom_point()
+  geom_point()+
+  labs(title = "No filter",
+       x = 'PC1 26.5%',
+       y = 'PC2 19.35%')
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -449,7 +456,10 @@ pcaOut$x %>%
              y = PC2,
              col = day))+
 
-  geom_point()
+  geom_point()+
+  labs(title = "No filter",
+       x = 'PC1 26.5%',
+       y = 'PC2 19.35%')
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -461,7 +471,10 @@ pcaOut$x %>%
              group = mouse))+
 
   geom_point()+
-  geom_line()
+  geom_line()+
+  labs(title = "No filter",
+       x = 'PC1 26.5%',
+       y = 'PC2 19.35%')
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -503,7 +516,10 @@ pcaOut$x %>%
              y = PC2,
              col = meanQualityScore ))+
 
-  geom_point()
+  geom_point()+
+  labs(title = "No filter",
+       x = 'PC1 26.5%',
+       y = 'PC2 19.35%')
 
 pcaOut$x %>%
   as.data.frame()%>%
