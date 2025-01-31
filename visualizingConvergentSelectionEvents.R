@@ -164,3 +164,80 @@ vennInNegative = list('colonDay1'=negativeSelectionColonDay1,
               'djDay14' = negativeSelectionDJDay14)
 
 ggVennDiagram(vennInNegative)
+'Not really sure if this makes the most sense to do'
+' Day 14 dj has the most unique significant negative selection events, lets see what those are'
+
+negativeSelectionDjDay14DF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group =='djday14')
+
+filterDF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group !='djday14')
+
+sigUniqueDay14DjNegative=negativeSelectionDjDay14DF %>%
+  filter(!gene %in% filterDF$gene)%>%
+  rename('locusId'= gene)%>%
+  distinct()%>%
+  merge(keggs, by = 'locusId')
+'Day 3 dj has the second most'
+
+negativeSelectionDjDay3DF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group =='djday3')
+
+filterDF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group !='djday3')
+
+sigUniqueDay3DjNegative=negativeSelectionDjDay3DF %>%
+  filter(!gene %in% filterDF$gene)%>%
+  rename('locusId'= gene)%>%
+  distinct()%>%
+  merge(keggs, by = 'locusId')
+
+#day 7 dj negative unique
+negativeSelectionDjDay7DF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group =='djday7')
+
+filterDF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group !='djday7')
+
+sigUniqueDay7DjNegative=negativeSelectionDjDay7DF %>%
+  filter(!gene %in% filterDF$gene)%>%
+  rename('locusId'= gene)%>%
+  distinct()%>%
+  merge(keggs, by = 'locusId')
+
+#day 1 dh negative unique
+negativeSelectionDjDay1DF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group =='djday1')
+
+filterDF=sigGenes %>%
+  filter(direction == 'negative')%>%
+  filter(group !='djday1')
+
+sigUniqueDay1DjNegative=negativeSelectionDjDay1DF %>%
+  filter(!gene %in% filterDF$gene)%>%
+  rename('locusId'= gene)%>%
+  distinct()%>%
+  merge(keggs, by = 'locusId')\
+
+#unique dj
+negativeSelectionDjDF=sigGenes %>%
+filter(direction == 'negative')%>%
+filter(grepl(pattern = 'dj',group)==T)
+
+filterDF=sigGenes %>%
+filter(direction == 'negative')%>%
+filter(grepl(pattern = 'dj',group)==F)
+
+sigUniqueDjNegative=negativeSelectionDjDF %>%
+filter(!gene %in% filterDF$gene)%>%
+rename('locusId'= gene)%>%
+select(-c(group, pvalue, padj))%>%
+distinct()%>%
+merge(keggs, by = 'locusId')
