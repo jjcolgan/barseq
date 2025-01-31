@@ -9,12 +9,106 @@ colnames(fitness) <- sub("DJ$", "Dj", colnames(fitness))
 
 metadata = read_tsv('fullbarseqMeta.txt')
 
+noTo=metadata %>%
+  filter(tissue != 'T0')%>%
+  .$sample
+
 pcoaIn=fitness %>%
   select(-c(desc,
             sysName))%>%
   column_to_rownames('locusId')%>%
   t()%>%
   as.data.frame()%>%
+  vegdist(method = 'euc')%>%
+  cmdscale(k =4, eig = T)
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V1,
+             y = V2))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V1,
+             col = tissue,
+             y = V2))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V1,
+             col = day,
+             y = V2))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V2,
+             y = V3))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V2,
+             col = tissue,
+             y = V3))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V2,
+             col = day,
+             y = V3))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V3,
+             y = V4))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V3,
+             col = tissue,
+             y = V4))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V3,
+             col = day,
+             y = V4))+
+  geom_point()
+
+pcoaIn=fitness %>%
+  select(-c(desc,
+            sysName))%>%
+  column_to_rownames('locusId')%>%
+  t()%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  filter(sample %in% noTo)%>%
+  column_to_rownames('sample')%>%
   vegdist(method = 'euc')%>%
   cmdscale(k =4, eig = T)
 
