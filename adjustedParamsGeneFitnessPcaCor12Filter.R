@@ -19,7 +19,8 @@ quality = quality %>%
 
 metadata = metadata %>%
   left_join(quality, by = 'sample')%>%
-  filter(cor12 >= .2)
+  filter(cor12 >= .2,
+         tissueDay != 'djday14')
 
 pcaOut=fitness %>%
   select(-c(desc,
@@ -128,6 +129,15 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              y = PC2,
+             col = lane))+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
              col = adjcor))+
   geom_point()
 
@@ -158,7 +168,7 @@ pcaOut$x %>%
              col = tissue))+
   geom_point()
 
-pcaOut$x %>%
+ pcaOut$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   left_join(metadata, by = 'sample')%>%

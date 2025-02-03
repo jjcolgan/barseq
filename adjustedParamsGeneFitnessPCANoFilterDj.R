@@ -166,3 +166,12 @@ pcaOut$x %>%
              y = PC3,
              col = as.factor(cage)))+
   geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC3,
+             y = PC4,
+             col = day))+
+  geom_point()

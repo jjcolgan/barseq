@@ -9,6 +9,17 @@ colnames(fitness) <- sub("DJ$", "Dj", colnames(fitness))
 
 metadata = read_tsv('fullbarseqMeta.txt')
 
+quality=read_tsv('barseqAdjustedParams/fit_quality.tab')
+quality$name <- sub("setA", "", quality$name)
+quality$name <- sub("_.*", "", quality$name)
+quality$name <- sub("CO$", "Co", quality$name)
+quality$name <- sub("DJ$", "Dj", quality$name)
+quality = quality %>%
+  rename('sample'= name)
+
+metadata = metadata %>%
+  left_join(quality, by = 'sample')
+
 noTo=metadata %>%
   filter(tissue != 'T0')%>%
   .$sample
@@ -78,6 +89,15 @@ pcoaIn$points%>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V2,
+             col = gccor,
+             y = V3))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
   ggplot(aes(x = V3,
              y = V4))+
   geom_point()
@@ -135,6 +155,15 @@ pcoaIn$points%>%
   left_join(metadata, by ='sample')%>%
   ggplot(aes(x = V1,
              col = day,
+             y = V2))+
+  geom_point()
+
+pcoaIn$points%>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by ='sample')%>%
+  ggplot(aes(x = V1,
+             col = gccor,
              y = V2))+
   geom_point()
 

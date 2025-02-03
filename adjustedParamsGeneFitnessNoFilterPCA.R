@@ -1,3 +1,4 @@
+
 library(tidyverse)
 
 fitness = read_tsv('barseqAdjustedParams/fit_logratios.tab')
@@ -7,7 +8,8 @@ colnames(fitness) <- sub("CO$", "Co", colnames(fitness))
 colnames(fitness) <- sub("DJ$", "Dj", colnames(fitness))
 
 metadata = read_tsv('fullbarseqMeta.txt')
-
+metadata$cage = as.factor(metadata$cage)
+metadata$lane = as.factor(metadata$lane)
 quality=read_tsv('barseqAdjustedParams/fit_quality.tab')
 quality$name <- sub("setA", "", quality$name)
 quality$name <- sub("_.*", "", quality$name)
@@ -18,7 +20,7 @@ quality = quality %>%
 
 metadata = metadata %>%
   left_join(quality, by = 'sample')
-summary(pcaOut)
+
 pcaOut=fitness %>%
   select(-c(desc,
             sysName))%>%
@@ -29,6 +31,30 @@ pcaOut=fitness %>%
   filter(sample %in% metadata$sample)%>%
   column_to_rownames('sample')%>%
   prcomp(center = TRUE)
+
+summary(pcaOut)
+dir.create('qcPcas')
+dir.create(path= 'qcPcas/noFilterPCAs')
+columns= colnames(metadata)
+for (c in 1:length(columns)){
+ p= pcaOut$x %>%
+    as.data.frame()%>%
+    rownames_to_column('sample')%>%
+    left_join(metadata, by = 'sample')%>%
+    ggplot(aes(x = PC1,
+               y = PC2,
+               col = .data[[columns[c]]]))+
+    geom_point()+
+    labs(x = 'PC1 - 25.43%',
+         y = 'PC2 - 22.75%')
+  path = paste0('qcPcas/noFilterPCAs/', columns[c],'.pdf')
+  ggsave(plot = p,
+         filename = path,
+         units = c('in'),
+         width = 4,
+         height = 4)
+
+}
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -145,6 +171,16 @@ pcaOut$x %>%
   ggplot(aes(x = PC1,
              y = PC2,
              col = gccor ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = `>=Q30 bases` ))+
 
   geom_point()
 
@@ -329,6 +365,26 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC2,
              y = PC3,
+             col =  100-`>=Q30 bases` ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = lane))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
              col = u))+
 
   geom_point()
@@ -481,6 +537,16 @@ pcaOut$x %>%
   rownames_to_column('sample')%>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
+             y = PC2 ,
+             col =  `>=Q30 bases` ))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
              y = PC2,
              col = tissue,
              group = mouse))+
@@ -611,6 +677,16 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC2,
              y = PC3,
+             col = gccor))+
+
+  geom_point()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
              col = log10(millionBases)))+
 
   geom_point()
@@ -713,3 +789,24 @@ pcaOut$x %>%
              y = PC4,
              col = cor12))+
   geom_point()
+
+metadata %>%
+  ggplot(aes(y = `>=Q30 bases`,
+             x = gccor))+
+  geom_point()+
+  ylim(94,100)+
+  geom_smooth(method = 'lm')
+
+metadata %>%
+  ggplot(aes(y = millionBases,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+metadata %>%
+  ggplot(aes(y = mad12,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+

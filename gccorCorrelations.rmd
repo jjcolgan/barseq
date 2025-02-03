@@ -1,0 +1,94 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+metadata = read_tsv('fullbarseqMeta.txt')
+
+quality=read_tsv('barseqAdjustedParams/fit_quality.tab')
+quality$name <- sub("setA", "", quality$name)
+quality$name <- sub("_.*", "", quality$name)
+quality$name <- sub("CO$", "Co", quality$name)
+quality$name <- sub("DJ$", "Dj", quality$name)
+quality = quality %>%
+        rename('sample'= name)
+
+metadata = metadata %>%
+        left_join(quality, by = 'sample')
+
+```
+
+
+```{r}
+metadata %>%
+  ggplot(aes(y = millionBases,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+cor.test(metadata$gccor, metadata$millionBases )
+```
+```{r}
+metadata %>%
+  ggplot(aes(y = `>=Q30 bases`,
+             x = gccor))+
+  geom_point()+
+  ylim(94,100)+
+  geom_smooth(method = 'lm')
+cor.test(metadata$gccor, metadata$`>=Q30 bases`)
+```
+
+```{r}
+
+metadata %>%
+  ggplot(aes(y = mad12,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+cor.test(metadata$gccor, metadata$mad12, method = 'spearman' )
+```
+# Perfect barcode correlation with gccor
+This actually looks like a pretty. Good, significant correlation. Not entirely sure what the biology behind this would be.
+```{R}
+metadata %>%
+        filter(is.na(gccor)==F)%>%
+        ggplot(aes(y = percentPerfectBarcode,
+                   x = gccor))+
+        geom_point()+
+        ylim (95,100)+
+        geom_smooth(method = 'lm')
+
+cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'pearson' )
+cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'spearman' )
+
+```
+
+```{r}
+metadata %>%
+  ggplot(aes(y = millionBases,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+ cor.test(metadata$gccor, metadata$millionBases, method = 'spearman' )
+```
+
+```{r}
+metadata %>%
+  ggplot(aes(y = pfClusters,
+             x = gccor))+
+  geom_point()+
+  geom_smooth(method = 'lm')
+
+ cor.test(metadata$gccor, metadata$pfClusters, method = 'spearman' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = `% of the lane`,
+                   x = gccor))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+cor.test(metadata$gccor, metadata$`% of the lane`, method = 'spearman' )
+```
