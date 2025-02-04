@@ -35,6 +35,7 @@ pcaOut=fitness %>%
 summary(pcaOut)
 dir.create('qcPcas')
 dir.create(path= 'qcPcas/noFilterPCAs')
+dir.create(path= 'qcPcas/noFilterPCAs/pc1Pc2')
 columns= colnames(metadata)
 for (c in 1:length(columns)){
  p= pcaOut$x %>%
@@ -47,7 +48,7 @@ for (c in 1:length(columns)){
     geom_point()+
     labs(x = 'PC1 - 25.43%',
          y = 'PC2 - 22.75%')
-  path = paste0('qcPcas/noFilterPCAs/', columns[c],'.pdf')
+  path = paste0('qcPcas/noFilterPCAs/pc1Pc2/', columns[c],'.pdf')
   ggsave(plot = p,
          filename = path,
          units = c('in'),
@@ -231,6 +232,29 @@ pcaOut$x %>%
              y = PC2,
              col = opcor))+
   geom_point()
+
+
+dir.create(path= 'qcPcas/noFilterPCAs/pc2Pc3')
+columns= colnames(metadata)
+for (c in 1:length(columns)){
+ p= pcaOut$x %>%
+   as.data.frame()%>%
+   rownames_to_column('sample')%>%
+   left_join(metadata, by = 'sample')%>%
+   ggplot(aes(x = PC2,
+              y = PC3,
+              col = .data[[columns[c]]]))+
+   geom_point()+
+   labs(x = 'PC2 - 22.75%',
+        y = 'PC3 - 7.53%')
+ path = paste0('qcPcas/noFilterPCAs/pc2Pc3/', columns[c],'.pdf')
+ ggsave(plot = p,
+        filename = path,
+        units = c('in'),
+        width = 4,
+        height = 4)
+
+}
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -490,6 +514,28 @@ pcaOut=fitness %>%
   column_to_rownames('sample')%>%
   prcomp(center = TRUE)
 summary(pcaOut)
+
+dir.create(path= 'qcPcas/noFilterPCAs/pc1Pc2NoT0')
+columns= colnames(metadata)
+for (c in 1:length(columns)){
+ p= pcaOut$x %>%
+   as.data.frame()%>%
+   rownames_to_column('sample')%>%
+   left_join(metadata, by = 'sample')%>%
+   ggplot(aes(x = PC1,
+              y = PC2,
+              col = .data[[columns[c]]]))+
+   geom_point()+
+   labs(x = 'PC1 - 25.43%',
+        y = 'PC2 - 22.75%')
+ path = paste0('qcPcas/noFilterPCAs/pc1Pc2NoT0/', columns[c],'.pdf')
+ ggsave(plot = p,
+        filename = path,
+        units = c('in'),
+        width = 4,
+        height = 4)
+
+}
 
 pcaOut$x %>%
   as.data.frame()%>%

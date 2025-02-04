@@ -3,6 +3,8 @@ title: "R Notebook"
 output: html_notebook
 ---
 ```{r}
+library(tidyverse)
+
 metadata = read_tsv('fullbarseqMeta.txt')
 
 quality=read_tsv('barseqAdjustedParams/fit_quality.tab')
@@ -91,4 +93,118 @@ metadata %>%
         geom_smooth(method = 'lm')
 
 cor.test(metadata$gccor, metadata$`% of the lane`, method = 'spearman' )
+```
+
+```{r}
+metadata %>%
+        ggplot(aes(y = percentPerfectBarcode,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')+
+        ylim(90, 100)
+
+metadata %>%
+        ggplot(aes(y = percentPerfectBarcode,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')+
+        ylim(90, 100)
+
+cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'spearman' )
+cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'pearson' )
+```
+
+```{r}
+metadata %>%
+        ggplot(aes(y = mad12,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+metadata %>%
+        ggplot(aes(y = percentPerfectBarcode,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')+
+        ylim(90, 100)
+
+cor.test(metadata$gccor, metadata$mad12, method = 'spearman' )
+cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'pearson' )
+```
+
+```{r}
+metadata %>%
+ggplot(aes(y = mad12c,
+x = gccor,
+col = lane))+
+geom_point()+
+geom_smooth(method = 'lm')
+
+
+cor.test(metadata$gccor, metadata$mad12c, method = 'spearman' )
+cor.test(metadata$gccor, metadata$mad12c, method = 'pearson' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = maxFit,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+
+cor.test(metadata$gccor, metadata$maxFit, method = 'spearman' )
+cor.test(metadata$gccor, metadata$maxFit, method = 'pearson' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = fNGSeen,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+
+cor.test(metadata$gccor, metadata$fNGSeen, method = 'spearman' )
+cor.test(metadata$gccor, metadata$fNGSeen, method = 'pearson' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = fUsedStrainsSeen,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+
+cor.test(metadata$gccor, metadata$fUsedStrainsSeen, method = 'spearman' )
+cor.test(metadata$gccor, metadata$fUsedStrainsSeen, method = 'pearson' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = nGenic,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+
+cor.test(metadata$gccor, metadata$nGenic, method = 'spearman' )
+cor.test(metadata$gccor, metadata$nGenic, method = 'pearson' )
+```
+```{r}
+metadata %>%
+        ggplot(aes(y = cor12,
+                   x = gccor,
+                   col = lane))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+
+
+cor.test(metadata$cor12, metadata$cor12, method = 'spearman' )
+cor.test(metadata$cor12, metadata$cor12, method = 'pearson' )
 ```
