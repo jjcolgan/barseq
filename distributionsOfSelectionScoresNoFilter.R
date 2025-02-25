@@ -1,5 +1,4 @@
 library(tidyverse)
-plot.new()
 
 fitness = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 colnames(fitness) <- sub("setA", "", colnames(fitness))
@@ -179,22 +178,22 @@ fitnessFullLong %>%
   geom_histogram()+
   facet_wrap(~tissue)
 
-fitnessScoresLong %>%
+fitnessFullLong %>%
   group_by(locusId)%>%
-  summarise('geneFitnessVariance' = var(logRatios))%>%
+  summarise('geneFitnessVariance' = var(fitnessScore))%>%
   ggplot(aes(x = geneFitnessVariance))+
   geom_histogram()
 
-lowestVarGenes=fitnessScoresLong %>%
+lowestVarGenes=fitnessFullLong %>%
   group_by(locusId)%>%
-  summarise('geneFitnessVariance' = var(logRatios))%>%
+  summarise('geneFitnessVariance' = var(fitnessScore))%>%
   arrange(geneFitnessVariance)%>%
   head(20)%>%
   .$locusId
 
-highesetVarGenes=fitnessScoresLong %>%
+highesetVarGenes=fitnessFullLong %>%
   group_by(locusId)%>%
-  summarise('geneFitnessVariance' = var(logRatios))%>%
+  summarise('geneFitnessVariance' = var(fitnessScore))%>%
   arrange(geneFitnessVariance)%>%
   tail(20)%>%
   .$locusId
@@ -205,9 +204,9 @@ annotatedGenes %>%
 
 # a lot of these genes do not seem to have a huge impact on fitness
 for (g in lowestVarGenes){
-  p=fitnessScoresLong %>%
+  p=fitnessFullLong %>%
     filter(locusId ==g)%>%
-    ggplot(aes(x = logRatios))+
+    ggplot(aes(x = fitnessScore))+
     geom_histogram()+
     facet_wrap(~tissue)
   plot(p)
@@ -217,9 +216,9 @@ for (g in lowestVarGenes){
 # more investigation, but generally the trends seem to be
 #the same in both tissues over time
 for (g in highesetVarGenes){
-  p=fitnessScoresLong %>%
+  p=fitnessFullLong %>%
     filter(locusId ==g)%>%
-    ggplot(aes(x = logRatios,
+    ggplot(aes(x = fitnessScore,
                fill = day))+
     geom_histogram()+
     facet_wrap(~tissue)+
@@ -228,9 +227,9 @@ for (g in highesetVarGenes){
 }
 
 for (g in highesetVarGenes){
-  p=fitnessScoresLong %>%
+  p=fitnessFullLong %>%
     filter(locusId ==g)%>%
-    ggplot(aes(y = logRatios,
+    ggplot(aes(y = fitnessScore,
                x = day,
                group = tissue,
                col = day))+
@@ -253,17 +252,17 @@ ftsXLoci=annotatedGenes %>%
 #FtsX is in that list, so want to look at just the dist of those proteins from the entire
 #set
 
-fitnessScoresLong%>%
+fitnessFullLong%>%
   filter(locusId %in% ftsXLoci)%>%
-  ggplot(aes(x = logRatios,
+  ggplot(aes(x = fitnessScore,
              fill = day))+
   geom_histogram()+
   facet_wrap(~tissue)
 
-fitnessScoresLong%>%
+fitnessFullLong%>%
   filter(tissue != 'T0')%>%
   filter(locusId %in% ftsXLoci)%>%
-  ggplot(aes(y = logRatios,
+  ggplot(aes(y = fitnessScore,
              x = day,
              group = tissue,
              col = day))+
@@ -279,16 +278,106 @@ annotatedGenes %>%
   filter(locusId %in% ftsLoci)%>%
   view()
 
-fitnessScoresLong%>%
+fitnessFullLong%>%
   filter(tissue != 'T0')%>%
   filter(locusId %in% ftsLoci)%>%
-  ggplot(aes(y = logRatios,
+  ggplot(aes(y = fitnessScore,
              x = day,
              group = tissue,
              col = day))+
   geom_point()+
   facet_wrap(~tissue+locusId, nrow = 2)+
-  geom_smooth(method = 'lm')
+  geom_smooth()
 
+perTissueFitnessVariances=fitnessFullLong %>%
+  filter(tissue != 'T0')%>%
+  group_by(tissue, locusId)%>%
+  summarise('geneTissueVariance'= var(fitnessScore))
+
+top10LowestVarDjGenes=perTissueFitnessVariances %>%
+  filter(tissue == 'dj')%>%
+  arrange(geneTissueVariance)%>%
+  head(10)
+
+
+top10LowestVarColonicGenes=perTissueFitnessVariances %>%
+  filter(tissue == 'colon')%>%
+  arrange(geneTissueVariance)%>%
+  head(10)
+
+'This is interesting, the gene variances in the colon are more or less
+poisson distributed, while those in the dj have a heavy right skewed tail'
+perTissueFitnessVariances %>%
+  ggplot(aes(x = geneTissueVariance))+
+  geom_histogram()+
+  facet_wrap(~tissue)
+
+'Only 4 of these are shared'
+intersect(top10LowestVarColonicGenes$locusId,
+          top10LowestVarDjGenes$locusId)
+
+annotatedGenes %>%
+  filter(locusId %in% top10LowestVarColonicGenes$locusId |
+           locusId %in% top10LowestVarDjGenes$locusId)%>%
+  view()
+'Generally the trends are similar for each gene in each population
+though the SI samples seem to have a greater spread than the colonic
+samples'
+for (g in top10LowestVarDjGenes$locusId){
+  p=fitnessFullLong %>%
+    filter(locusId == g)%>%
+    ggplot(aes(x = day,
+               group = tissue,
+               y = fitnessScore))+
+    geom_point()+
+    facet_wrap(~tissue)+
+    geom_smooth()+
+    labs(title = g)
+  plot(p)
+}
+
+for (g in top10LowestVarColonicGenes$locusId){
+  p=fitnessFullLong %>%
+    filter(locusId == g)%>%
+    ggplot(aes(x = day,
+               group = tissue,
+               y = fitnessScore))+
+    geom_point()+
+    facet_wrap(~tissue)+
+    geom_smooth()+
+    labs(title = g)
+  plot(p)
+}
+
+top10HighestVarDjGenes=perTissueFitnessVariances %>%
+  filter(tissue == 'dj')%>%
+  arrange(geneTissueVariance)%>%
+  tail(10)
+
+top10HighestVarColonicGenes=perTissueFitnessVariances %>%
+  filter(tissue == 'colon')%>%
+  arrange(geneTissueVariance)%>%
+  tail(10)
+'only 3 are shared'
+intersect(top10HighestVarColonicGenes$locusId,
+          top10HighestVarDjGenes$locusId)
+
+annotatedGenes %>%
+  filter(locusId %in% top10HighestVarDjGenes$locusId |
+           locusId %in% top10HighestVarColonicGenes$locusId)%>%
+  view()
+'These are kinda of interesting'
+for (g in top10HighestVarDjGenes$locusId){
+  p=fitnessFullLong %>%
+    filter(locusId == g)%>%
+    ggplot(aes(x = day,
+               group = tissue,
+               y = fitnessScore))+
+    geom_point()+
+    facet_wrap(~tissue)+
+    geom_smooth()+
+    labs(title = g)
+  plot(p)
+}
 
 

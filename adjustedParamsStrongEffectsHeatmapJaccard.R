@@ -17,10 +17,12 @@ quality$name <- sub("setA", "", quality$name)
 quality$name <- sub("_.*", "", quality$name)
 quality$name <- sub("CO$", "Co", quality$name)
 quality$name <- sub("DJ$", "Dj", quality$name)
-metadata = quality %>% 
-  rename('sample'= name)%>%
-  left_join(metadata) %>%
-  filter(cor12 >= .2)
+  metadata = quality %>%
+    rename('sample'= name)%>%
+    left_join(metadata)
+
+#metadata = metadata %>%
+ # filter(cor12 >= .2)
 
 # clean up sample names
 strongFitnessEffects$name <- sub("setA", "", strongFitnessEffects$name)
@@ -175,8 +177,7 @@ jaccardNegativeOut$points%>%
   geom_point()+
   labs(y = 'PCo 3 - 10.03%',
        x = 'PCo 2 - 19.59%',
-       title = 'Negative selection')stat_ellipse()
-
+       title = 'Negative selection')
 jaccardNegativeOut$points%>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%

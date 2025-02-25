@@ -30,6 +30,7 @@ pcaOut=fitness %>%
   column_to_rownames('sample')%>%
   prcomp(center = TRUE)
 
+summary(pcaOut)
 
 pcaOut$x %>%
   as.data.frame()%>%
