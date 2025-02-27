@@ -1,0 +1,272 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+read in data
+```{r}
+library(tidyverse)
+library(ggpubr)
+
+fitness = read_tsv('barseqAdjustedParams/fit_logratios.tab')
+colnames(fitness) <- sub("setA", "", colnames(fitness))
+colnames(fitness) <- sub("_.*", "", colnames(fitness))
+colnames(fitness) <- sub("CO$", "Co", colnames(fitness))
+colnames(fitness) <- sub("DJ$", "Dj", colnames(fitness))
+
+metadata = read_tsv('fullbarseqMeta.txt')
+metadata$cage = as.factor(metadata$cage)
+metadata$lane = as.factor(metadata$lane)
+quality=read_tsv('barseqAdjustedParams/fit_quality.tab')
+quality$name <- sub("setA", "", quality$name)
+quality$name <- sub("_.*", "", quality$name)
+quality$name <- sub("CO$", "Co", quality$name)
+quality$name <- sub("DJ$", "Dj", quality$name)
+quality = quality %>%
+  rename('sample'= name)
+
+metadata = metadata %>%
+  left_join(quality, by = 'sample')
+
+metadata$day = factor(metadata$day, levels = c('t0', 'day1','day3', 'day7', 'day14'))
+annotations = read_tsv('genesWithAnvioAnnotations.tsv')
+```
+transform data, make nice table that has everything
+```{r}
+fitnessFullLong = fitness%>%
+  pivot_longer(cols = c(4:45), names_to = 'sample', values_to = 'fitnessScore')%>%
+  left_join(metadata, by = 'sample')
+```
+Interesting in that there are huge tails. The left tail is longer.
+```{r}
+sum=fitnessFullLong %>%
+  filter(tissue != 'T0')%>%
+  .$fitnessScore%>%
+  summary()
+
+
+fitnessFullLong %>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = fitnessScore))+
+  geom_density()+
+  geom_vline(xintercept = sum[4])+
+  geom_vline(xintercept = sum[3], col = 'blue')+
+  geom_vline(xintercept = sum[2], col = 'darkgreen')+
+  geom_vline(xintercept = sum[5], col = 'darkgreen')+
+  geom_vline(xintercept = sum[1], col = 'red')+
+  geom_vline(xintercept = sum[6], col = 'red')+
+  annotate("text", x = sum[4], y = .75, label = "Average score", angle = 90, vjust = -0.5) +
+  annotate("text", x = sum[3], y = .75, label = "Median score", angle = 90, vjust = -0.5, col = 'blue')+
+  annotate("text", x = sum[2], y = .75, label = "Q1", angle = 90, vjust = -0.5, col = 'darkgreen')+
+  annotate("text", x = sum[5], y = .75, label = "Q3", angle = 90, vjust = -0.5, col = 'darkgreen')
+```
+I mean it seems like in general, day 3 for both tissues has highest density of positive fitness scores.
+DJ has fatter tails, which is interesting but I am not sure what it means.
+Seems like later time points have more negative fitness scores. Both SI and colon have a greater density of negative
+fitness scores regardless of time point. Think this makes sense
+
+```{r}
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = fitnessScore,
+             fill = day))+
+  geom_density(alpha = .3)
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = fitnessScore,
+             fill = tissue))+
+  geom_density(alpha = .3)
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = fitnessScore,
+             fill = day))+
+  facet_wrap(~tissue)+
+  geom_density(alpha = .3)
+```
+Both have more negative than positive fitness scores. DJ has a higher percentage of positive fitness scores relative to colon. Fitness scores in general decrease for most mutants over time in each tissue.
+```{r}
+fitness_summary <- fitnessFullLong %>%
+  filter(tissue != 'T0') %>%
+  mutate(category = ifelse(fitnessScore > 0, "Positive", "Negative")) %>%
+  group_by(tissue, category) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(tissue) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Plot
+ggplot(fitness_summary, aes(x = tissue, y = percentage, fill = category)) +
+  geom_col(position = "fill") + # Stacked bar plot with proportions
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(x = "Tissue", y = "Percentage", fill = "Fitness Score") +
+  theme_minimal()
+
+fitness_summary <- fitnessFullLong %>%
+  filter(tissue != 'T0') %>%
+  mutate(category = ifelse(fitnessScore > 0, "Positive", "Negative")) %>%
+  group_by(day, tissue, category) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(day,tissue) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Plot
+ggplot(fitness_summary, aes(x = day, y = percentage, fill = category)) +
+  geom_col(position = "fill") + # Stacked bar plot with proportions
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(x = "Tissue", y = "Percentage", fill = "Fitness Score") +
+  theme_minimal()
+
+fitness_summary <- fitnessFullLong %>%
+  filter(tissue != 'T0') %>%
+  mutate(category = ifelse(fitnessScore > 0, "Positive", "Negative")) %>%
+  group_by(day, category, tissue) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(day, tissue) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Plot
+ggplot(fitness_summary, aes(x = day, y = percentage, fill = category)) +
+  geom_col(position = "fill") +  # Stacked bar plot with proportions
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(x = "Day", y = "Percentage", fill = "Fitness Score") +  # Fixed x-axis label
+  theme_minimal() +
+  facet_wrap(~tissue)  # Facet by tissue
+
+```
+Fitness scores do trend downwards for both tissues, colon has a lower origin and steeper negative slope
+```{r}
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = day,
+             group = tissue,
+             y = fitnessScore))+
+  geom_point(alpha = .1)+
+  geom_smooth(method = 'lm')+
+  facet_wrap(~tissue)+
+  theme_bw()
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(tissue, day, locusId)%>%
+  summarise('meanFitScore' = mean(fitnessScore))%>%
+        ggplot(aes(x = day,
+                   group = tissue,
+                   y = meanFitScore))+
+        geom_point(alpha = .1)+
+        geom_smooth(method = 'lm')+
+        facet_wrap(~tissue)+
+        theme_bw()
+```
+Right skewed. Most genes are consistant in their fitness effects across both time points and tissues?
+```{R}
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(locusId)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ggplot(aes(x = geneVariance))+
+  geom_histogram()
+```
+In general it looks like the scores become less and less consistant for a given gene overtime. This is more pronounced in the small intestine
+```{r}
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(locusId, tissue)%>%
+  summarize(geneVariance = sd(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = tissue, alpha = .25))+
+  geom_histogram()
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(locusId, day)%>%
+  summarize(geneVariance = sd(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = day, alpha = .25))+
+  geom_histogram()
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(locusId, tissue, day)%>%
+  summarize(geneVariance = sd(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = day, alpha = .25))+
+  facet_wrap(~tissue)+
+  geom_histogram()
+```
+
+DJ mutants are more variant in their fitness than colonic mutants, more right skewed
+```{r}
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(locusId, tissue)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = tissue, alpha = .25))+
+  geom_histogram()
+```
+This looks strange, less variation, then more, then less, then more again
+
+```{r}
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(day, locusId)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = day, alpha = .25))+
+  geom_histogram()+facet_wrap(~day)
+```
+It almost looks like there is less variation over time in colon and more in the DJ. I dont really know what is going on here, fitness variaion in genes does increase in both conditions over time, but much more so in the DJ. DJs seems to be going up and down, while it looks like variability in the colon peaks on day 3, or at least average variation that is.
+```{r}
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(day,tissue, locusId)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ggplot(aes(x = geneVariance, fill = day, alpha = .25))+
+  geom_histogram()+facet_wrap(~tissue,scales = 'free_x')
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(day,tissue, locusId)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ungroup()%>%
+  ggplot(aes(y= geneVariance, x = day, group = tissue))+
+  geom_point(alpha  = .1)+facet_wrap(~tissue)+
+  geom_smooth(method = 'lm')
+
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  group_by(day,tissue, locusId)%>%
+  summarize(geneVariance = var(fitnessScore))%>%
+  ungroup()%>%
+  ggplot(aes(y= geneVariance, x = day))+
+  geom_boxplot()+
+  facet_wrap(~tissue, scales = 'free_y')
+```
+This is hard to interpret and I need a way to visualize better / set a cut off on the rank delta
+```{r}
+ameanGeneFitnessScores=fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+        group_by(tissue, locusId)%>%
+        summarise('meanTissueFitnessScore'=mean(fitnessScore))
+
+lowestMeanGenesColon=meanGeneFitnessScores %>%
+        filter(tissue == 'colon')%>%
+        arrange(meanTissueFitnessScore)%>%
+        rownames_to_column('rankColon')
+
+lowestMeanGenesDj=meanGeneFitnessScores %>%
+  filter(tissue == 'dj')%>%
+  arrange(meanTissueFitnessScore)%>%
+  rownames_to_column('rankDj')
+
+sharedLowMeanGenes=sharedLowMeanGenes=intersect(lowestMeanGenesColon$locusId,
+          lowestMeanGenesDj$locusId)
+
+
+lowestMeanGenesColon%>%
+        left_join(lowestMeanGenesDj,by = 'locusId')%>%
+        filter(locusId %in% sharedLowMeanGenes)%>%
+  mutate(rankDj = as.numeric(rankDj),
+         rankColon = as.numeric(rankColon))%>%
+  mutate(rankDelta = abs(rankDj - rankColon))%>%
+        arrange(desc(rankDelta))%>%
+  select(locusId, rankDj, rankColon, rankDelta)%>%
+  left_join(annotations, by  = 'locusId')%>%view()
+```

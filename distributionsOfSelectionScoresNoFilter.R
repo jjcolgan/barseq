@@ -31,6 +31,24 @@ fitnessFullLong%>%
   ggplot(aes(x = fitnessScore))+
   geom_histogram()
 
+fitnessFullLong%>%
+  filter(day != 't0')%>%
+  ggplot(aes(x = fitnessScore))+
+  geom_histogram()+
+  facet_wrap(~day, nrow = 1)
+
+fitnessFullLong%>%
+  filter(day != 't0')%>%
+  ggplot(aes(x = fitnessScore))+
+  geom_density()+
+  facet_wrap(~day, ncol = 1)
+
+fitnessFullLong%>%
+  ggplot(aes(y = fitnessScore,
+             x = day))+
+  geom_boxplot(outliers = F)
+
+
 
 
 fitnessFullLong%>%
@@ -46,10 +64,16 @@ phenotypes than strongly positve'
 summary(fitnessFullLong$fitnessScore)
 
 fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
   ggplot(aes(x = fitnessScore))+
   geom_histogram()+
   facet_wrap(~tissue)
 
+fitnessFullLong%>%
+  filter(tissue != 'T0')%>%
+  ggplot(aes(x = fitnessScore))+
+  geom_density()+
+  facet_wrap(~tissue, ncol =1)
 
 fitnessFullLong%>%
   filter(tissue != 'T0') %>%
@@ -59,15 +83,17 @@ fitnessFullLong%>%
   geom_vline(xintercept = 1)+
   geom_vline(xintercept = -1)
 
-
+fitnessFullLong%>%
+  filter(tissue != 'T0') %>%
+  ggplot(aes(x = fitnessScore))+
+  geom_density()+
+  facet_wrap(~tissue, ncol = 1)
 
 ks.test(fitnessFullLong$fitnessScore[fitnessFullLong$tissue == "dj"],
           fitnessFullLong$fitnessScore[fitnessFullLong$tissue == "colon"])
 
 ks.test(fitnessFullLong$fitnessScore[fitnessFullLong$tissue == "dj"],
         fitnessFullLong$fitnessScore[fitnessFullLong$tissue == "colon"],alternative = 'less')
-
-
 
 
 fitnessFullLong%>%
@@ -122,13 +148,20 @@ fitnessFullLong %>%
   geom_vline(xintercept = -5)
 fitnessFullLong %>%
   filter(tissue != 'T0') %>%
-  ggplot(aes(x = fitnessScore, fill = factor(color))) +  # Ensure color is treated as a factor
+  ggplot(aes(x = fitnessScore)) +  # Ensure color is treated as a factor
   geom_histogram()+
   facet_wrap(~tissue+day,
              nrow = 2,
-             ncol = 4)+
-  geom_vline(xintercept = -2)+
-  geom_vline(xintercept = -5)
+             ncol = 4)
+
+fitnessFullLong %>%
+  filter(tissue != 'T0') %>%
+  ggplot(aes(x = fitnessScore)) +  # Ensure color is treated as a factor
+  geom_density()+
+  facet_wrap(~tissue+day,
+             nrow = 2,
+             ncol = 4)
+
 ggsave(filename = 'histogramOfFitnessScores.pdf', width = 10, height = 10)
 annotatedGenes = read_tsv('genesWithAnvioAnnotations.tsv')
 

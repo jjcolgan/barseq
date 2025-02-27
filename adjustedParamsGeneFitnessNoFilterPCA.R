@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(ggpubr)
 
 fitness = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 colnames(fitness) <- sub("setA", "", colnames(fitness))
@@ -74,6 +75,19 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              y = PC2,
+             col = tissue))+
+  geom_point()+
+  labs(x = 'PC1 - 25.43%',
+       y = 'PC2 - 22.75%')+
+  stat_ellipse()+
+  stat_stars()
+
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
              col = as.factor(lane)))+
   geom_point()
 
@@ -83,10 +97,19 @@ pcaOut$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
              y = PC2,
-             shape = tissue,
              col = day))+
+  geom_point()+stat_ellipse()+
+  stat_stars()
 
-  geom_point()
+pcaOut$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = tissueDay))+
+  geom_point()+stat_ellipse()+
+  stat_stars()
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -264,7 +287,9 @@ pcaOut$x %>%
              y = PC3,
              col = tissue))+
 
-  geom_point()
+  geom_point()+
+  stat_ellipse()+
+  stat_stars()
 
 pcaOut$x %>%
   as.data.frame()%>%
@@ -548,7 +573,9 @@ pcaOut$x %>%
   geom_point()+
   labs(title = "No filter",
        x = 'PC1 26.5%',
-       y = 'PC2 19.35%')
+       y = 'PC2 19.35%')+
+  stat_ellipse()+
+  stat_stars()
 
 pcaOut$x %>%
   as.data.frame()%>%

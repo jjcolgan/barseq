@@ -10,11 +10,22 @@ colnames(fitnessScores) <- sub("_.*", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("CO$", "Co", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("DJ$", "Dj", colnames(fitnessScores))
 
+# just going to do this for genes with strong effects at some point
+strongFitnessEffects=read_tsv('barseqAdjustedParams/strong.tab')
+
 fitnessScoresLong=fitnessScores %>%
   select(-c(desc,
             sysName))%>%
   pivot_longer(cols = c(2:43), names_to = 'sample', values_to = 'logRatios')%>%
   left_join(metadata, by = 'sample')
+
+heatMapSamples = fitnessScoresLong %>%
+  filter(locusId %in% strongFitnessEffects$locusId) %>%
+  mutate('mouseTissueDay' = paste(mouse,tissue,day, sep = '-'))%>%
+  filter(tissue != 'T0')%>%
+  select(sample)%>%
+  distinct()%>%
+  .$sample
 
 heatmapMeta = metadata %>%
   filter(sample %in% heatMapSamples) %>%
@@ -38,8 +49,6 @@ ha=HeatmapAnnotation(df = heatmapMeta, col = list(tissue = c('dj' = 'khaki1', 'c
                                                                                                            'day7' = 'olivedrab3',
                                                                                                            'day14' = 'olivedrab4')))
 
-
-
 fitnessScoresLong %>%
   mutate('mouseTissueDay' = paste(mouse,tissue,day, sep = '-'))%>%
   filter(tissue != 'T0')%>%
@@ -55,8 +64,7 @@ fitnessScoresLong %>%
   scale()%>%
   Heatmap(show_column_names = T, show_row_names = F)
 
-# just going to do this for genes with strong effects at some point
-strongFitnessEffects=read_tsv('barseqAdjustedParams/strong.tab')
+
 
 fitnessScoresLong %>%
   filter(locusId %in% strongFitnessEffects$locusId) %>%
@@ -77,7 +85,7 @@ heatMapSamples = fitnessScoresLong %>%
 heatmapMeta = metadata %>%
   filter(sample %in% heatMapSamples) %>%
   mutate(mouseTissueDay = paste(mouse, tissue, day, sep = '-')) %>%
-  select(mouseTissueDay, tissue, day) %>%
+  select(mouseTissueDay, tissue, day, cage) %>%
   column_to_rownames('mouseTissueDay')
 
 heatmapMatrix = fitnessScoresLong %>%
