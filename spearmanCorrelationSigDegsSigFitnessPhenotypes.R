@@ -12,10 +12,26 @@ compute_correlation <- function(pair, method) {
 }
 
 expression = read_tsv('sigGenesCounts.tsv')
-metadataRNA = read.csv('metadataRnaSeq.csv')%>%
-  as.data.frame()
+fitnessMeta = read_tsv('fullbarseqMeta.txt')
 sigMutants = read_tsv('barseqAdjustedParams/strong.tab')
 
+sigMutants$name <- sub("setA", "", sigMutants$name)
+sigMutants$name<- sub("_.*", "", sigMutants$name)
+sigMutants$name <- sub("CO$", "Co", sigMutants$name)
+sigMutants$name <- sub("DJ$", "Dj", sigMutants$name)
+
+mutantsToTest=sigMutants %>%
+  rename(sample = name)%>%
+  left_join(fitnessMeta, by = 'sample')%>%
+  filter(lrn >2)%>%
+  group_by(locusId)%>%
+  summarise('observed'=n())%>%
+  filter(observed > 1)%>%
+  .$locusId
+
+
+metadataRNA = read.csv('metadataRnaSeq.csv')%>%
+  as.data.frame()
 
 sampleLibraryRna = metadataRNA %>%
   filter(Tissue == 'Colon'& Treatment == 'Bar-seq')%>%
@@ -42,12 +58,11 @@ colnames(fitnessScores) <- sub("CO$", "Co", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("DJ$", "Dj", colnames(fitnessScores))
 fitnessScores=fitnessScores %>%
   select(-c(sysName, desc))%>%
-  filter(locusId %in% sigMutants$locusId)%>%
+  filter(locusId %in% mutantsToTest)%>%
   as.data.frame()%>%
   column_to_rownames('locusId')%>%
   t()
 
-fitnessMeta = read_tsv('fullbarseqMeta.txt')
 fitnessMeta=fitnessMeta%>%
   filter(tissue == 'colon')
 fitnessMeta=fitnessMeta %>%
@@ -66,7 +81,7 @@ fitnessScores=fitnessScores %>%
   rownames_to_column('sample')%>%
   merge(fitnessMeta[c('sample', 'mergeCol')], by = 'sample')
 
-#expression= expression[rownames(expression) %in% fitnessScores$mergeCol, , drop = FALSE]
+expression= expression[rownames(expression) %in% fitnessScores$mergeCol, , drop = FALSE]
 fitnessScores = fitnessScores %>%
   select(-sample)%>%
   column_to_rownames('mergeCol')
@@ -80,7 +95,7 @@ expression <- expression[order(rownames(expression)), , drop = FALSE]
 gene_mutant_pairs <- expand.grid(colnames(expression), colnames(fitnessScores), stringsAsFactors = FALSE)
 
 # Use parallel processing
-num_cores <- 8
+num_cores <- 2
 cor_results <- do.call(rbind, mclapply(1:nrow(gene_mutant_pairs), function(i) {
   compute_correlation(gene_mutant_pairs[i, ], method = 'spearman')
 }, mc.cores = num_cores))
@@ -92,5 +107,6 @@ cor_results$padjust <- p.adjust(cor_results$P_Value, method = 'fdr')
 significant_results <- cor_results %>%
   filter(padjust < 0.05)
 
-write.table(file = cor_results, name = 'sigGeneStrongMutantSpearmanCorrelation.tsv')
+write_tsv(file = 'sigGeneStrongMutantSpearmanCorrelation.tsv', x = cor_results)
+?write_tsv()
 
