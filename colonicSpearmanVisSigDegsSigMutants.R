@@ -21,7 +21,7 @@ simpleQQPlot = function (observedPValues) {
        -log10(sort(observedPValues)))
   abline(0, 1, col = "red")
 }
-spearmanRes=read_tsv('sigColonicBarseqGenesStrongMutantKenallCorrelationEstimatedPvalues.tsv')
+spearmanRes=read_tsv('sigColonicBarseqGenesStrongMutantSpearmanCorrelationEstimatedPvalues.tsv')
 fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 
 fitnessScores %>%

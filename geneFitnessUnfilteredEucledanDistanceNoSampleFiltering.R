@@ -38,6 +38,7 @@ pcoaIn$points%>%
   rownames_to_column('sample')%>%
   left_join(metadata, by ='sample')%>%
   ggplot(aes(x = V1,
+             shape = tissue,
              y = V2))+
   geom_point()
 
@@ -56,6 +57,7 @@ pcoaIn$points%>%
   left_join(metadata, by ='sample')%>%
   ggplot(aes(x = V1,
              col = day,
+             shape = tissue,
              y = V2))+
   geom_point()
 
@@ -190,6 +192,7 @@ pcoaIn$points%>%
   left_join(metadata, by ='sample')%>%
   ggplot(aes(x = V2,
              col = day,
+             shape = tissue,
              y = V3))+
   geom_point()
 

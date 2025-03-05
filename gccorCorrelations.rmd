@@ -104,13 +104,6 @@ metadata %>%
         geom_smooth(method = 'lm')+
         ylim(90, 100)
 
-metadata %>%
-        ggplot(aes(y = percentPerfectBarcode,
-                   x = gccor,
-                   col = lane))+
-        geom_point()+
-        geom_smooth(method = 'lm')+
-        ylim(90, 100)
 
 cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'spearman' )
 cor.test(metadata$gccor, metadata$percentPerfectBarcode, method = 'pearson' )
@@ -205,6 +198,6 @@ metadata %>%
         geom_smooth(method = 'lm')
 
 
-cor.test(metadata$cor12, metadata$cor12, method = 'spearman' )
-cor.test(metadata$cor12, metadata$cor12, method = 'pearson' )
+cor.test(metadata$cor12, metadata$gccor, method = 'spearman' )
+cor.test(metadata$cor12, metadata$gccor, method = 'pearson' )
 ```

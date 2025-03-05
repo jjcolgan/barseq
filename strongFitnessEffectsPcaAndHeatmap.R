@@ -1,6 +1,7 @@
 library(tidyverse)
 library(vegan)
 library(ggpubr)
+read_tsv('full/fit_logratios_good.tab') %>%view()
 fullGenesTabAndMeta=read_tsv('fullGenesTab.tsv')
 tscores = read_tsv('full/fit_t.tab')
 
@@ -26,6 +27,43 @@ geneFitnessscores$x %>%
              shape = day,
              col = tissue))+
   geom_point()
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = passFail))+
+  geom_point()
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = failReason))+
+  geom_point()
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = log10(millionBases)))+
+  geom_point()
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = meanQualityScore ))+
+  geom_point()
+
 
 mouseSamples = metadata %>%
   filter(tissue == 'dj'|
@@ -54,6 +92,31 @@ geneFitnessscores$x %>%
   geom_point()+
   labs(x = "PC1 - 25.82%",
        y = 'PC2 - 20.12%')
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             shape = day,
+             col = passFail))+
+  geom_point()+
+  labs(x = "PC1 - 25.82%",
+       y = 'PC2 - 20.12%')
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             shape = day,
+             col = failReason))+
+  geom_point()+
+  labs(x = "PC1 - 25.82%",
+       y = 'PC2 - 20.12%')
+
 summary(geneFitnessscores)
 
 adonisIn=fitnessScores %>%
@@ -80,9 +143,18 @@ geneFitnessscores$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC2,
              y = PC3,
-             col = tissueDay))+
-  geom_point()+
-  stat_ellipse()
+             shape = day,
+             col = passFail))+
+  geom_point()
+
+geneFitnessscores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC2,
+             y = PC3,
+             col = passFail))+
+  geom_point()
 
 geneFitnessscores$x %>%
   as.data.frame()%>%
@@ -127,10 +199,45 @@ signficantFitnessEffectsScores$x %>%
   left_join(metadata, by = 'sample')%>%
   ggplot(aes(x = PC1,
   y = PC2,
-  shape = day,
   col = tissue))+
   geom_point()+
   labs(x = 'PC1 = 33.41%',
+       y = 'PC2 = 21.51%')
+
+signficantFitnessEffectsScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = day))+
+  geom_point()+
+  labs(x = 'PC1 = 33.41%',
+       y = 'PC2 = 21.51%')
+
+signficantFitnessEffectsScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = passFail))+
+  geom_point()+
+  labs(x = 'PC1 = 33.41%',
+       y = 'PC2 = 21.51%')
+
+
+
+signficantFitnessEffectsScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = failReason))+
+  geom_point()+
+  labs(x = 'PC1 = 33.41%',
+       col = 'technical concern',
        y = 'PC2 = 21.51%')
 
 heatmapIn=signficantFitnessEffectsLong %>%
@@ -172,6 +279,30 @@ significantFitnessEffectsWideFilteredScores$x %>%
   geom_point()+
   labs(x = 'PC1 = 42.21%',
        y = 'PC2 = 24.09%')
+
+significantFitnessEffectsWideFilteredScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = passFail,))+
+  geom_point()+
+  labs(x = 'PC1 = 42.21%',
+       y = 'PC2 = 24.09%')
+
+significantFitnessEffectsWideFilteredScores$x %>%
+  as.data.frame()%>%
+  rownames_to_column('sample')%>%
+  left_join(metadata, by = 'sample')%>%
+  ggplot(aes(x = PC1,
+             y = PC2,
+             col = failReason,))+
+  geom_point()+
+  labs(x = 'PC1 = 42.21%',
+       col = 'technical concern',
+       y = 'PC2 = 24.09%')
+
 
 heatmapInFiltered=signficantFitnessEffectsLong %>%
   filter(locusId %in% significantFitnessPassingFilter)%>%

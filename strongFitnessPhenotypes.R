@@ -18,7 +18,7 @@ pcaIn<-strongFitnessTab %>%
               values_from = t)%>%
   column_to_rownames('name')
 pcaIn[is.na(pcaIn)]<-0
-write_tsv(rownames_to_column(pcaIn, 'name'), file = 'full/strongFitnessMatrix0Imputed.tsv')
+#write_tsv(rownames_to_column(pcaIn, 'name'), file = 'full/strongFitnessMatrix0Imputed.tsv')
 pcaIn<-read_tsv('full/strongFitnessMatrix0Imputed.tsv')%>%
   column_to_rownames('name')
 strongFitnessScores<-pcaIn%>%
@@ -47,6 +47,7 @@ strongFitnessScores$x %>%
   as.data.frame()%>%
   rownames_to_column('sample')%>%
   left_join(metadata, by = 'sample')%>%
+  view()
   ggplot(aes(x = PC1,
              col = mouse,
              group = mouse,

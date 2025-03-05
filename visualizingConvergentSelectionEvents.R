@@ -1,5 +1,5 @@
 library(tidyverse)
-library(ggVennDiagram)
+fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 sigGenes=read_tsv('significantRepatedSelectionPhenotypes.tsv')
 
 geneAnnotations = read_tsv('genesWithAnvioAnnotations.tsv')
