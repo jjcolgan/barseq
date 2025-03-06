@@ -13,22 +13,14 @@ compute_correlation <- function(pair, method) {
 
 expression = read_tsv('sigGenesCounts.tsv')
 fitnessMeta = read_tsv('fullbarseqMeta.txt')
-sigMutants = read_tsv('barseqAdjustedParams/strong.tab')
+sigMutants = read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
 
-sigMutants$name <- sub("setA", "", sigMutants$name)
-sigMutants$name<- sub("_.*", "", sigMutants$name)
-sigMutants$name <- sub("CO$", "Co", sigMutants$name)
-sigMutants$name <- sub("DJ$", "Dj", sigMutants$name)
-
-mutantsToTest=sigMutants %>%
-  rename(sample = name)%>%
-  left_join(fitnessMeta, by = 'sample')%>%
-  filter(lrn >2)%>%
-  group_by(locusId)%>%
-  summarise('observed'=n())%>%
-  filter(observed > 1)%>%
-  .$locusId
-
+mutantsToTest=sigResMaaslin %>%
+  filter(metadata == 'day')%>%
+  filter(qval < .05)%>%
+  select(feature)%>%
+  distinct()%>%
+  .$feature
 
 metadataRNA = read.csv('metadataRnaSeq.csv')%>%
   as.data.frame()

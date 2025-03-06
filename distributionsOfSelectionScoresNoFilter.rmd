@@ -363,7 +363,7 @@ lowestMeanGenesColon%>%
         geom_abline()
 
 
-lowestMeanGenesColon%>%
+genesWithHighestChangeInMeanFitnessRank=lowestMeanGenesColon%>%
   left_join(lowestMeanGenesDj,by = 'locusId')%>%
   filter(locusId %in% sharedLowMeanGenes)%>%
   mutate(rankDj = as.numeric(rankDj),
@@ -371,6 +371,26 @@ lowestMeanGenesColon%>%
   mutate(rankDelta = abs(rankDj - rankColon))%>%
         filter(rankDelta > 750)%>%
   arrange(desc(rankDelta))%>%
-        view()
+        head(15)%>%
+        .$locusId
 ```
+
+```{r}
+for (locus in genesWithHighestChangeInMeanFitnessRank){
+  p=fitnessFullLong %>%
+    filter(tissue != 'T0',
+           locusId == locus)%>%
+    ggplot(aes(x = day,
+               group = tissue,
+               y = fitnessScore,
+    col = tissue))+
+    geom_point(size = 4)
+  plot(p)
+}
+```
+
+
+
+
+`
 

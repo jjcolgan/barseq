@@ -14,7 +14,9 @@ in this case. Reducing that threshold to .5 brings the number to about 1000.  32
 must be present in at least 2 samples in a group to be considered. This leaves about 16 mutants with only 16 significant differences.
 
 Going back to the input set of 355 genes. Even with the reduction in the number of mutants there are 256,000 tests this yields 91,235 tests and 9 significant correlations. Straight up
-does not work. '
+does not work.
+
+Use an input set of maaslin2 mutants, about 300 i believe'
 
 simpleQQPlot = function (observedPValues) {
   plot(-log10(1:length(observedPValues)/length(observedPValues)),
@@ -107,7 +109,12 @@ fulldata=expressionLong %>%
 
 spearmanRes$bh = p.adjust(spearmanRes$P_Value, method = 'BH')
 sigRes=spearmanRes%>%
-  filter(bh < .1)
+  filter(padjust < .1)
+
+spearmanRes %>%
+  filter(Spearman_Correlation > .5)
+
+sigRes$padjust%>%summary()
 
 spearmanRes$P_Value %>%
    hist()
