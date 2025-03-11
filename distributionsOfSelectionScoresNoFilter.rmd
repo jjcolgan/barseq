@@ -387,6 +387,14 @@ for (locus in genesWithHighestChangeInMeanFitnessRank){
     geom_point(size = 4)
   plot(p)
 }
+
+fitnessFullLong %>%
+        filter(locusId == 'BBR_RS19540')%>%
+        ggplot(aes(x = day,
+                   group = tissue,
+                   y = fitnessScore,
+                   col = tissue))+
+        geom_point(size = 4)
 ```
 
 

@@ -16,7 +16,7 @@ must be present in at least 2 samples in a group to be considered. This leaves a
 Going back to the input set of 355 genes. Even with the reduction in the number of mutants there are 256,000 tests this yields 91,235 tests and 9 significant correlations. Straight up
 does not work.
 
-Use an input set of maaslin2 mutants, about 300 i believe'
+Use an input set of maaslin2 mutants, about 111 and 355 genes '
 
 simpleQQPlot = function (observedPValues) {
   plot(-log10(1:length(observedPValues)/length(observedPValues)),
@@ -31,6 +31,8 @@ fitnessScores %>%
 
 metadataRNA = read.csv('metadataRnaSeq.csv')%>%
   as.data.frame()
+
+
 
 sampleLibraryRna = metadataRNA %>%
   filter(Tissue == 'Colon'& Treatment == 'Bar-seq')%>%
@@ -94,7 +96,7 @@ expression <- expression[order(rownames(expression)), , drop = FALSE]
 
 expressionLong=expression %>%
   rownames_to_column('Sample')%>%
-  pivot_longer(cols = c(2:356), names_to = 'gene', values_to = 'rnaCounts')
+  pivot_longer(cols = c(2:ncol(.)), names_to = 'gene', values_to = 'rnaCounts')
 
 fitnessLong=fitnessScores %>%
   rownames_to_column('Sample')%>%
@@ -109,10 +111,9 @@ fulldata=expressionLong %>%
 
 spearmanRes$bh = p.adjust(spearmanRes$P_Value, method = 'BH')
 sigRes=spearmanRes%>%
-  filter(padjust < .1)
+  filter(padjust < .05)
 
-spearmanRes %>%
-  filter(Spearman_Correlation > .5)
+
 
 sigRes$padjust%>%summary()
 
@@ -148,16 +149,32 @@ filter(Gene %in% sigRes$Gene,
   pivot_wider(names_from = 'Mutant', id_cols = 'Gene',
               values_from = 'Spearman_Correlation', )%>%
   column_to_rownames("Gene")%>%
-  Heatmap(show_column_names = F, show_row_names = F)
+  Heatmap(show_column_names = T, show_row_names = T)
 
 
 spearmanRes %>%
   rename(locusId = Mutant)%>%
   left_join(annotatedMutants, by = 'locusId')%>%
-  filter(padjust < .1)%>%
+  filter(padjust < .05)%>%
   select(c(locusId,Gene,SYMBOL, desc, kofamAccession,kofamFunction,padjust, Spearman_Correlation))%>%
   distinct()%>%
   view()
 qqplot.pvalues(p = spearmanRes$P_Value)
 
+metadataRNA$Group = factor(metadataRNA$Group,
+                           levels = c('1dayBar-seq',
+                                      '3dayBar-seq',
+                                      '7dayBar-seq',
+                                      '14dayBar-seq'))
+expressionLong %>%
+  rename(sample = Sample)%>%
+  left_join(metadataRNA, by = 'sample')%>%
+  group_by(Group, gene)%>%
+  summarise(meanExpression = mean(rnaCounts))%>%
+  ggplot(aes(x = Group,
+             y= log10(meanExpression),
+             col = gene,
+             group = gene))+
+  geom_line(alpha = .25)+
+  theme(legend.position = 'none')
 

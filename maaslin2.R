@@ -29,10 +29,10 @@ Maaslin2(input = maaslinIn,
          normalization = 'none',
          min_prevalence = 0,
          min_abundance = 0,
-         min_variance = .5,
+         min_variance = 1,
          fixed_effects = c('day','pfClusters', 'millionBases'),
          random_effects = ,
-         reference = 'day,day1',
+         reference = 'day,day1;day3;day7;day14',
          output = 'colonLogRatiosMaaslin2'
 
 
