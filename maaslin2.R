@@ -1,9 +1,14 @@
 library(tidyverse)
 library(Maaslin2)
+library(ggrepel)
 fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 metadata = read_tsv('fullbarseqMeta.txt')
 metadata$day = factor(metadata$day, levels = c('t0', 'day1', 'day3', 'day7', 'day14'))
+annotations = read_tsv('genesWithAnvioAnnotations.tsv')
 
+keggs = annotations %>%
+  select(locusId, kofamAccession, kofamFunction)%>%
+  distinct()
 colnames(fitnessScores) <- sub("setA", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("_.*", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("CO$", "Co", colnames(fitnessScores))
@@ -23,21 +28,21 @@ maaslinIn=fitnessScores %>%
 # variance filter was primarily added to only focus on samples where there
 # actually a dramatic change in abundance and reduce the number of tests
 # performed
-Maaslin2(input = maaslinIn,
-         input_metadata = colonMeta,
-         transform = 'none',
-         normalization = 'none',
-         min_prevalence = 0,
-         min_abundance = 0,
-         min_variance = 1,
-         fixed_effects = c('day','pfClusters', 'millionBases'),
-         random_effects = ,
-         reference = 'day,day1;day3;day7;day14',
-         output = 'colonLogRatiosMaaslin2'
-
-
-
-)
+# Maaslin2(input = maaslinIn,
+#          input_metadata = colonMeta,
+#          transform = 'none',
+#          normalization = 'none',
+#          min_prevalence = 0,
+#          min_abundance = 0,
+#          min_variance = .5,
+#          fixed_effects = c('day','pfClusters', 'millionBases'),
+#          random_effects = ,
+#          reference = 'day,day1;day3;day7;day14',
+#          output = 'colonLogRatiosMaaslin2'
+#
+#
+#
+# )
 sigResMaaslin=read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
 
 sigResMaaslin %>%
@@ -47,17 +52,183 @@ sigResMaaslin %>%
   distinct()%>%
   nrow()
 
-Maaslin2(input = maaslinIn,
-         input_metadata = djMeta,
-         transform = 'none',
-         normalization = 'none',
-         min_prevalence = 0,
-         min_abundance = 0,
-         min_variance = .5,
-         fixed_effects = c('day','pfClusters', 'millionBases'),
-         random_effects = ,
-         output = 'djLogRatiosMaaslin2'
+# Maaslin2(input = maaslinIn,
+#          input_metadata = colonMeta,
+#          transform = 'none',
+#          normalization = 'none',
+#          min_prevalence = 0,
+#          min_abundance = 0,
+#          min_variance = .5,
+#          fixed_effects = c('dayNumeric','pfClusters', 'millionBases'),
+#          random_effects = ,
+#          reference = '',
+#          output = 'colonLogRatiosMaaslin2NumericDay'
+# )
+
+sigResMaaslinNumericDayColon=read_tsv('colonLogRatiosMaaslin2NumericDay/significant_results.tsv')
+resMaaslinNumericDayColon=read_tsv('colonLogRatiosMaaslin2NumericDay/all_results.tsv')
+sigResMaaslinNumericDayColon %>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(qval < .05)%>%
+  select(feature)%>%
+  distinct()%>%
+  nrow()
+
+resMaaslinNumericDayColon %>%
+  filter(metadata == 'dayNumeric')%>%
+  ggplot(aes(x = coef,
+             y= -log10(qval)))+
+  geom_point()
+
+highNegativeCoefMutants=sigResMaaslinNumericDayColon%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef < 0)%>%
+  filter(qval < .05)%>%
+  arrange(coef)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highSignificantNegativeCoefMutants=sigResMaaslinNumericDayColon%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef < 0)%>%
+  filter(qval < .05)%>%
+  arrange(qval)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highPositiveCoefMutants=sigResMaaslinNumericDayColon%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef > 0)%>%
+  filter(qval < .05)%>%
+  arrange(desc(coef))%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highSignificantPositiveCoefMutants=sigResMaaslinNumericDayColon%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef > 0)%>%
+  filter(qval < .05)%>%
+  arrange(qval)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+label_df <- bind_rows(
+  highSignificantNegativeCoefMutants,
+  highSignificantPositiveCoefMutants,
+  highNegativeCoefMutants,
+  highPositiveCoefMutants
+) %>%
+  select(locusId, kofamFunction) %>%
+  distinct() %>%
+  mutate(kofamFunction = replace_na(kofamFunction, "Unannotated"))
+
+# Initialize label column to NA
+resMaaslinNumericDayColon$label <- NA
+
+# Join annotations into resMaaslinNumericDayColon
+resMaaslinNumericDayColon <- resMaaslinNumericDayColon %>%
+  left_join(label_df, by = c("feature" = "locusId")) %>%
+  mutate(label = if_else(!is.na(kofamFunction), kofamFunction, label)) %>%
+  select(-kofamFunction)
+
+resMaaslinNumericDayColon %>%
+  filter(metadata == 'dayNumeric')%>%
+  ggplot(aes(x = coef,
+             label = label,
+             y= -log10(qval)))+
+  geom_point(alpha = .25)+
+  geom_text_repel(size = 2.)
 
 
 
-)
+
+# Maaslin2(input = maaslinIn,
+#          input_metadata = djMeta,
+#          transform = 'none',
+#          normalization = 'none',
+#          min_prevalence = 0,
+#          min_abundance = 0,
+#          min_variance = .5,
+#          fixed_effects = c('day','pfClusters', 'millionBases'),
+#          random_effects = ,
+#          output = 'djLogRatiosMaaslin2'
+# )
+# Maaslin2(input = maaslinIn,
+#          input_metadata = djMeta,
+#          transform = 'none',
+#          normalization = 'none',
+#          min_prevalence = 0,
+#          min_abundance = 0,
+#          min_variance = .5,
+#          fixed_effects = c('dayNumeric','pfClusters', 'millionBases'),
+#          random_effects = ,
+#          reference = '',
+#          output = 'djLogRatiosMaaslin2NumericDay'
+# )
+
+sigResMaaslinNumericDayDj=read_tsv('djLogRatiosMaaslin2NumericDay/significant_results.tsv')
+resMaaslinNumericDayDj=read_tsv('djLogRatiosMaaslin2NumericDay/all_results.tsv')
+highNegativeCoefMutants=sigResMaaslinNumericDayDj%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef < 0)%>%
+  filter(qval < .05)%>%
+  arrange(coef)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highSignificantNegativeCoefMutants=sigResMaaslinNumericDayDj%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef < 0)%>%
+  filter(qval < .05)%>%
+  arrange(qval)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highPositiveCoefMutants=sigResMaaslinNumericDayDj%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef > 0)%>%
+  filter(qval < .05)%>%
+  arrange(desc(coef))%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+highSignificantPositiveCoefMutants=sigResMaaslinNumericDayDj%>%
+  filter(metadata == 'dayNumeric')%>%
+  filter(coef > 0)%>%
+  filter(qval < .05)%>%
+  arrange(qval)%>%
+  rename(locusId = feature)%>%
+  left_join(keggs, by = 'locusId')%>%
+  head(5)
+
+label_df <- bind_rows(
+  highSignificantNegativeCoefMutants,
+  highSignificantPositiveCoefMutants,
+  highNegativeCoefMutants,
+  highPositiveCoefMutants
+) %>%
+  select(locusId, kofamFunction) %>%
+  distinct() %>%
+  mutate(kofamFunction = replace_na(kofamFunction, "Unannotated"))
+
+# Initialize label column to NA
+resMaaslinNumericDayDj$label <- NA
+resMaaslinNumericDayDj <- resMaaslinNumericDayDj %>%
+  left_join(label_df, by = c("feature" = "locusId")) %>%
+  mutate(label = if_else(!is.na(kofamFunction), kofamFunction, label)) %>%
+  select(-kofamFunction)
+
+resMaaslinNumericDayDj %>%
+  filter(metadata == 'dayNumeric')%>%
+  ggplot(aes(x = coef,
+             label = label,
+             y= -log10(qval)))+
+  geom_point(alpha = .25)+
+  geom_text_repel(size = 2.)

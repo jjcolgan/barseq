@@ -53,7 +53,7 @@ makeMeanTissueFitnessScatterPlot = function(longFitTab, dayOfInterest){
   meanDayWide$phenotype[meanDayWide$dj > 0 & meanDayWide$colon >0  ] = 'Weak positive both'
   meanDayWide$phenotype[meanDayWide$dj >= 2 & meanDayWide$colon >=2  ] = 'Strong positive both'
   meanDayWide$phenotype[meanDayWide$dj < 0 & meanDayWide$colon <0  ] = 'Weak negative both'
-  meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon <-2  ] = 'Strong negative both'
+  meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon <=-2  ] = 'Strong negative both'
   p=meanDayWide %>%
     ggplot(aes(x = dj,
                col = phenotype,
