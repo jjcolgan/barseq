@@ -57,7 +57,8 @@ fitnessFullLong %>%
   annotate("text", x = sum[4], y = .75, label = "Average score", angle = 90, vjust = -0.5) +
   annotate("text", x = sum[3], y = .75, label = "Median score", angle = 90, vjust = -0.5, col = 'blue')+
   annotate("text", x = sum[2], y = .75, label = "Q1", angle = 90, vjust = -0.5, col = 'darkgreen')+
-  annotate("text", x = sum[5], y = .75, label = "Q3", angle = 90, vjust = -0.5, col = 'darkgreen')
+  annotate("text", x = sum[5], y = .75, label = "Q3", angle = 90, vjust = -0.5, col = 'darkgreen')+
+  theme_bw()
 ```
 I mean it seems like in general, day 3 for both tissues has highest density of positive fitness scores.
 DJ has fatter tails, which is interesting but I am not sure what it means.
@@ -85,14 +86,16 @@ fitnessFullLong%>%
   filter(tissue != 'T0')%>%
   ggplot(aes(x = fitnessScore,
              fill = tissue))+
-  geom_density(alpha = .3)
+  geom_density(alpha = .3)+
+        theme_bw()
 
 fitnessFullLong%>%
   filter(tissue != 'T0')%>%
   ggplot(aes(x = fitnessScore,
              col= tissue))+
   stat_ecdf(geom = 'step', linewidth = 1)+
-  scale_y_continuous(labels = scales::percent_format())
+  scale_y_continuous(labels = scales::percent_format())+
+        theme_bw()
 
 fitnessFullLong%>%
   filter(tissue != 'T0')%>%
@@ -202,7 +205,8 @@ fitnessFullLong%>%
                    y = meanFitScore))+
         geom_line(alpha = .05)+
         facet_wrap(~tissue)+
-        theme_bw()
+        theme_bw()+
+geom_smooth(aes(group = tissue), method = 'lm')
 ```
 Right skewed. Most genes are consistant in their fitness effects across both time points and tissues?
 ```{R}
@@ -360,7 +364,7 @@ lowestMeanGenesColon%>%
                    col = rankDelta,
                    size = rankDelta))+
         geom_point()+
-        geom_abline()
+        theme_bw()
 
 
 genesWithHighestChangeInMeanFitnessRank=lowestMeanGenesColon%>%
@@ -373,6 +377,20 @@ genesWithHighestChangeInMeanFitnessRank=lowestMeanGenesColon%>%
   arrange(desc(rankDelta))%>%
         head(15)%>%
         .$locusId
+
+
+lowestMeanGenesColon%>%
+    left_join(lowestMeanGenesDj,by = 'locusId')%>%
+    filter(locusId %in% sharedLowMeanGenes)%>%
+    mutate(rankDj = as.numeric(rankDj),
+     rankColon = as.numeric(rankColon))%>%
+    mutate(rankDelta = abs(rankDj - rankColon))%>%
+    filter(rankDelta <= 100)%>%
+    filter(rankDj <= 100)%>%
+    filter(rankColon <= 100)%>%
+    arrange(rankDelta)%>%
+    write_tsv(file = 'conservedLowRankAcrossTissues.tsv')
+
 ```
 
 ```{r}

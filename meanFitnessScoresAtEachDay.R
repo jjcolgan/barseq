@@ -44,24 +44,27 @@ makeMeanTissueFitnessScatterPlot = function(longFitTab, dayOfInterest){
                 values_from = 'meanTissueFitness')
 
   meanDayWide$phenotype = 'Deleterious in both populations'
-  meanDayWide$phenotype[meanDayWide$dj > 0 & meanDayWide$colon < 0 ] = 'Weak positive Dj weak negative colon'
-  meanDayWide$phenotype[meanDayWide$dj >= 2 & meanDayWide$colon < 0 ] = 'Strong positive Dj weak negative colon'
-  meanDayWide$phenotype[meanDayWide$dj >=2 & meanDayWide$colon <= -2 ] = 'Strong positive Dj strong negative colon'
-  meanDayWide$phenotype[meanDayWide$dj < 0 & meanDayWide$colon > 0 ] = 'Weak negative Dj weak positive colon'
-  meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon > 0 ] = 'Strong negative Dj weak positive colon'
+  meanDayWide$phenotype[meanDayWide$dj > 0 & meanDayWide$colon < 0 ] = 'Weak positive Dj, weak negative colon'
+  meanDayWide$phenotype[meanDayWide$dj >= 2 & meanDayWide$colon < 0 ] = 'Strong positive Dj, weak negative colon'
+  meanDayWide$phenotype[meanDayWide$dj >=2 & meanDayWide$colon <= -2 ] = 'Strong positive Dj, strong negative colon'
+  meanDayWide$phenotype[meanDayWide$dj < 0 & meanDayWide$colon > 0 ] = 'Weak negative Dj, weak positive colon'
+  meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon > 0 ] = 'Strong negative Dj, weak positive colon'
   meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon >= 2 ] = 'Strong negative Dj strong positive colon'
   meanDayWide$phenotype[meanDayWide$dj > 0 & meanDayWide$colon >0  ] = 'Weak positive both'
   meanDayWide$phenotype[meanDayWide$dj >= 2 & meanDayWide$colon >=2  ] = 'Strong positive both'
   meanDayWide$phenotype[meanDayWide$dj < 0 & meanDayWide$colon <0  ] = 'Weak negative both'
+  meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon <0  ] = 'Strong negative Dj, weak negative colon'
+  meanDayWide$phenotype[meanDayWide$dj < 0 & meanDayWide$colon <=-1  ] = 'Weak negative Dj, strong negative colon'
   meanDayWide$phenotype[meanDayWide$dj <= -2 & meanDayWide$colon <=-2  ] = 'Strong negative both'
   p=meanDayWide %>%
     ggplot(aes(x = dj,
-               col = phenotype,
                y = colon))+
-    geom_point()+
+    geom_point(alpha = .2)+
     labs(title = dayOfInterest)+
     xlim(-10,10)+
     ylim(-10,10)+
+    geom_hline(yintercept = 0)+
+    geom_vline(xintercept = 0)+
     theme_bw()
   plot(p)
 }
