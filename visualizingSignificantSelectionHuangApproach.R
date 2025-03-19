@@ -104,7 +104,7 @@ sigDay7%>%
 
 sigDay14=mergedTandFitnessScoresLong %>%
   filter(day == 'day14')%>%
-  filter(abs(tscore) >=4)
+  filter(abs(tscore) >4)
 
 sigDay14%>%
   group_by(tissue, locusId)%>%
