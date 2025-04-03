@@ -1,6 +1,10 @@
 library(lme4)
 library(lmerTest)
 library(tidyverse)
+library(car)
+
+'Need to test and make sure it is actually better than the basic LM'
+
 fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 metadata = read_tsv('fullbarseqMeta.txt')
 metadata$day = factor(metadata$day, levels = c('t0', 'day1', 'day3', 'day7', 'day14'))
@@ -49,16 +53,11 @@ for (l in 1:length(loci)) {
     merge(metadata, by = 'sample') %>%
     filter(tissue != 'T0')
 
-  # Convert tissue to a factor and set up tissueNumeric
-  input$tissue = as.factor(input$tissue)
 
-  input$fitnessBinary = 0
-  input$fitBinary[fitnessScores > 0]
   # Fit the model and capture the summary
   lmer_fit <- lmer(
-    fitness ~ tissue+percentPerfectBarcode+(tissue|day/cage),
-    data = input,
-    control = lmerControl(optimizer ="Nelder_Mead")
+    fitness ~ tissue+lane+millionBases+(1|day/cage/mouse),
+    data = input
   )
 
   lmer_summary <- summary(lmer_fit)
@@ -73,11 +72,12 @@ for (l in 1:length(loci)) {
 }
 #write_tsv(modelStats, 'linear models/lmTissueComparisionsAllTimePoints/mixedEffectsModelRes/fitnessCageNumericDayAndPercentPerfectBarcodeAsPredictorMouseAsRandomModelStats.tsv')
 
-modelStats$padj = p.adjust(modelStats$pvalue)
-modelStats%>%
-  ggplot(aes(x = aic,
-             fill = padj < .1))+
-  geom_histogram()
+modelStats$padj = p.adjust(modelStats$pvalue, method = 'fdr')
+
+
+ modelStats%>%
+   ggplot(aes(x = pvalue))+
+   geom_histogram(bins = 150)
 
 sig = modelStats %>%
   filter(padj < .1)
@@ -107,5 +107,24 @@ plot(lmer_fit)
 qqnorm(residuals(lmer_fit))
 
 qqline(residuals(lmer_fit))
+
+sig = sig %>%
+  left_join(keggs, by = 'locusId')%>%
+  arrange(desc(-log10(padj)))
+
+for (s in unique(sig$locusId)){
+  p=fitnessScores%>%
+    pivot_longer(cols = c(4:ncol(.)), names_to = 'sample', values_to = 'fitnessScore')%>%
+    left_join(metadata, by = 'sample')%>%
+    filter(tissue != 'T0',
+           locusId == s)%>%
+    ggplot(aes(x = tissue, y = fitnessScore))+
+    geom_boxplot(outliers = F)+
+    geom_point(aes(col = day))+
+    labs(title = s,
+         caption = paste0('Coef: ', sig$coef[sig$locusId==s],
+                          '\np-adj :', sig$padj[sig$locusId==s]))
+  plot(p)
+}
 
 
