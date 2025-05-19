@@ -41,7 +41,7 @@ mergedTandFitnessScoresLong=tscoresLong %>%
 sigDay1=mergedTandFitnessScoresLong %>%
   filter(day == 'day1')%>%
   filter(abs(tscore) >4,
-         abs(fitnessScore)> .5)
+         abs(fitnessScore)> 0)
 
 sigDay1DjLoci = sigDay1 %>%
   filter(tissue == 'dj')

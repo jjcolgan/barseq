@@ -243,6 +243,12 @@ Maaslin2(input = maaslinIn,
 )
 
 sigResMaaslinNumericDayDj=read_tsv('djLogRatiosMaaslin2NumericDay/significant_results.tsv')
+
+sigResMaaslinNumericDayDj%>%
+  filter(metadata == 'dayNumeric')%>%
+  ggplot(aes(x=pval))+
+  geom_histogram(bins = 50)
+
 resMaaslinNumericDayDj=read_tsv('djLogRatiosMaaslin2NumericDay/all_results.tsv')
 highNegativeCoefMutants=sigResMaaslinNumericDayDj%>%
   filter(metadata == 'dayNumeric')%>%

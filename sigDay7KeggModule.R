@@ -9,27 +9,34 @@ progressr::handlers("txtprogressbar")
 get_module <- function(accession) {
   keggout <- keggGet(accession)
   if (!is.null(keggout[[1]]$BRITE)) {
-    return(as.character(keggout[[1]]$BRITE[1]))
+    brite <- keggout[[1]]$BRITE
+    level1 <- if (length(brite) >= 2) as.character(brite[2]) else NA_character_
+    level2 <- if (length(brite) >= 3) as.character(brite[3]) else NA_character_
+    return(c(level1, level2))
   } else {
-    return(NA_character_)
+    return(c(NA_character_, NA_character_))
   }
 }
 
-# Helper function to annotate one table
 annotate_modules <- function(df) {
-  df$module <- NA
-  df_no_na <- df %>% filter(!is.na(kofamAccession))
+  df_no_na <- df %>% filter(!is.na(kofamAccession)) %>%
+    mutate(moduleLevel1 = NA_character_, moduleLevel2 = NA_character_)
 
   with_progress({
     p <- progressor(steps = nrow(df_no_na))
     for (i in seq_len(nrow(df_no_na))) {
       p()
-      df_no_na$module[i] <- get_module(df_no_na$kofamAccession[i])
+      keggOut <- get_module(df_no_na$kofamAccession[i])
+      df_no_na$moduleLevel1[i] <- keggOut[1]
+      df_no_na$moduleLevel2[i] <- keggOut[2]
     }
   })
 
-  df[df$kofamAccession %in% df_no_na$kofamAccession, "module"] <- df_no_na$module
-  return(df)
+  df_annotated <- df %>%
+    left_join(df_no_na %>% select(kofamAccession, moduleLevel1, moduleLevel2),
+              by = "kofamAccession")
+
+  return(df_annotated)
 }
 
 # Load annotations and datasets
@@ -97,37 +104,20 @@ day7SigNegativeColon <- annotate_modules(day7SigNegativeColon)
 
 # Example summary
 day7SigNegativeColon %>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
   write_tsv('day7ColonNegativeModulesRanked.tsv')
 
 day7SigPositiveColon %>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
   write_tsv('day7ColonPositiveModulesRanked.tsv')
 
 day7SigNegativeDj%>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
   write_tsv('day7DjNegativeModulesRanked.tsv')
 
 day7SigPositiveDj%>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
   write_tsv('day7DjPositiveModulesRanked.tsv')
 
 negativeDay7Ranked%>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
   write_tsv('negativeDay7ModulesRanked.tsv')
 
 positiveDay7Ranked%>%
-  group_by(module) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n))%>%
+
   write_tsv('positiveDay7ModulesRanked.tsv')

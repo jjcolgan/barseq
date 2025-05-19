@@ -1,7 +1,7 @@
 library(tidyverse)
 'Trying to implement a variance filter for the model to increase the significant results. '
 
-modelRes = read_tsv('linear models/lmTissueComparisionsAllTimePoints/linearModelRes/sigResFirstModel.tsv')
+modelRes = read_tsv('linearModelRes.tsv')
 
 fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
 metadata = read_tsv('fullbarseqMeta.txt')

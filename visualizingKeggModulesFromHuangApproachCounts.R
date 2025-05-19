@@ -22,12 +22,14 @@ day1ColonPositiveModules$selection = 'positive'
 day1ColonNegativeModules$selection = 'negative'
 
 day1PositiveModules=day1PositiveModules %>%
-  filter(!kofamAccession%in% day1DjPositiveModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day1ColonPositiveModules$kofamAccession)
+  filter(!locusId%in% day1DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day1ColonPositiveModules$locusId)
 
 day1NegativeModules=day1NegativeModules %>%
-  filter(!kofamAccession%in% day1DjNegativeModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day1ColonNegativeModules$kofamAccession)
+  filter(!locusId%in% day1DjNegativeModules$locusId)%>%
+  filter(!locusId%in% day1DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day1ColonNegativeModules$locusId)%>%
+  filter(!locusId%in% day1ColonPositiveModules$locusId)
 
 
 rbind(day1PositiveModules,
@@ -138,12 +140,14 @@ day3ColonPositiveModules$selection = 'positive'
 day3ColonNegativeModules$selection = 'negative'
 
 day3PositiveModules=day3PositiveModules %>%
-  filter(!kofamAccession%in% day3DjPositiveModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day3ColonPositiveModules$kofamAccession)
+  filter(!locusId%in% day3DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day3ColonPositiveModules$locusId)
 
 day3NegativeModules=day3NegativeModules %>%
-  filter(!kofamAccession%in% day3DjNegativeModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day3ColonNegativeModules$kofamAccession)
+  filter(!locusId%in% day3DjNegativeModules$locusId)%>%
+  filter(!locusId%in% day3DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day3ColonNegativeModules$locusId)%>%
+  filter(!locusId%in% day3ColonPositiveModules$locusId)
 
 rbind(day3PositiveModules,
       day3NegativeModules,
@@ -253,12 +257,14 @@ day7ColonPositiveModules$selection = 'positive'
 day7ColonNegativeModules$selection = 'negative'
 
 day7PositiveModules=day7PositiveModules %>%
-  filter(!kofamAccession%in% day7DjPositiveModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day7ColonPositiveModules$kofamAccession)
+  filter(!locusId%in% day7DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day7ColonPositiveModules$locusId)
 
 day7NegativeModules=day7NegativeModules %>%
-  filter(!kofamAccession%in% day7DjNegativeModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day7ColonNegativeModules$kofamAccession)
+  filter(!locusId%in% day7DjNegativeModules$locusId)%>%
+  filter(!locusId%in% day7DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day7ColonNegativeModules$locusId)%>%
+  filter(!locusId%in% day7ColonPositiveModules$locusId)
 
 rbind(day7PositiveModules,
       day7NegativeModules,
@@ -397,12 +403,14 @@ day14ColonPositiveModules$selection = 'positive'
 day14ColonNegativeModules$selection = 'negative'
 
 day14PositiveModules=day14PositiveModules %>%
-  filter(!kofamAccession%in% day14DjPositiveModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day14ColonPositiveModules$kofamAccession)
+  filter(!locusId%in% day14DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day14ColonPositiveModules$locusId)
 
 day14NegativeModules=day14NegativeModules %>%
-  filter(!kofamAccession%in% day14DjNegativeModules$kofamAccession)%>%
-  filter(!kofamAccession%in% day14ColonNegativeModules$kofamAccession)
+  filter(!locusId%in% day14DjNegativeModules$locusId)%>%
+  filter(!locusId%in% day14DjPositiveModules$locusId)%>%
+  filter(!locusId%in% day14ColonNegativeModules$locusId)%>%
+  filter(!locusId%in% day14ColonPositiveModules$locusId)
 
 rbind(day14PositiveModules,
       day14NegativeModules,
@@ -491,7 +499,7 @@ rbind(day14PositiveModules,
   labs(title = 'Day 14 strong brite level 2')
 
 
-?rbind(day14PositiveModules,
+rbind(day14PositiveModules,
       day14NegativeModules,
       day14DjPositiveModules,
       day14DjNegativeModules,
@@ -519,3 +527,175 @@ rbind(day14PositiveModules,
   geom_bar()+
   facet_wrap(~tissue)+
   labs(title = 'Day 14 strong environmental information processing level 2')
+
+
+day1All=rbind(day1PositiveModules,
+      day1NegativeModules,
+      day1DjPositiveModules,
+      day1DjNegativeModules,
+      day1ColonPositiveModules,
+      day1ColonNegativeModules)
+
+day3All=rbind(day3PositiveModules,
+              day3NegativeModules,
+              day3DjPositiveModules,
+              day1DjNegativeModules,
+              day3ColonPositiveModules,
+              day3ColonNegativeModules)
+
+day7All=rbind(day7PositiveModules,
+              day7NegativeModules,
+              day7DjPositiveModules,
+              day7DjNegativeModules,
+              day7ColonPositiveModules,
+              day7ColonNegativeModules)
+
+day14All=rbind(day14PositiveModules,
+              day14NegativeModules,
+              day14DjPositiveModules,
+              day14DjNegativeModules,
+              day14ColonPositiveModules,
+              day14ColonNegativeModules)
+
+repeatModules=day1All%>%
+  group_by(locusId)%>%
+  summarise('nModuleSeen'=n())%>%
+  filter(nModuleSeen > 1)
+
+'confirmed that filters only allow "both" to be shown one time'
+#day1All %>%
+#  group_by(locusId) %>%
+#  filter(n() > 1 & n_distinct(selection) > 1) %>%
+#  ungroup()%>%view()
+
+day1All %>%
+  filter(abs(meanFitness) > 2,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title = 'Strong repeated phenotypes')
+
+day1All %>%
+  filter(abs(meanFitness) > 2,
+         count > 2,
+         tissue == 'dj',
+         is.na(kofamAccession)!= T)%>%
+  arrange(desc(abs(meanFitness)))%>%
+  distinct()%>%
+  view()
+  #write_tsv('nonRedundantSignificantPhenotypesDay1DJ.tsv')
+
+  day1All %>%
+    filter(abs(meanFitness) > 1,
+         count > 2,
+         tissue == 'colon',
+         is.na(kofamAccession)!= T)%>%
+    arrange(desc(abs(meanFitness)))%>%
+    distinct()%>%
+    view()
+  #write_tsv('nonRedundantSignificantPhenotypesDay1Colon.tsv')
+
+day1All %>%
+  filter(abs(meanFitness) > 1,
+         count > 2,
+         tissue == 'both',
+         is.na(kofamAccession)!= T)%>%
+  arrange(desc(abs(meanFitness)))%>%
+  distinct()
+  #write_tsv('nonRedundantSignificantPhenotypesDay1Both.tsv')
+
+day3All %>%
+  filter(abs(meanFitness) > 1,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Strong repeated phenotypes')
+'Nothin here'
+day3All%>%
+  filter(abs(meanFitness) > 2,
+         count > 2,
+         tissue == 'dj',
+         is.na(kofamAccession)!= T)%>%
+  arrange(desc(abs(meanFitness)))%>%
+  distinct()%>%
+  view()
+#write_tsv('nonRedundantSignificantPhenotypesDay1DJ.tsv')
+
+day3All%>%
+  filter(abs(meanFitness) > 2,
+         count > 2,
+         tissue == 'colon',
+         is.na(kofamAccession)!= T)%>%
+  arrange(desc(abs(meanFitness)))%>%
+  distinct()%>%
+  write_tsv('nonRedundantSignificantPhenotypesDay3Colon.tsv')
+
+day3All%>%
+  filter(abs(meanFitness) > 2,
+         count > 2,
+         tissue == 'both',
+         is.na(kofamAccession)!= T)%>%
+  arrange(desc(abs(meanFitness)))%>%
+  distinct()%>%
+  write_tsv('nonRedundantSignificantPhenotypesDay3Both.tsv')
+
+
+
+day7All %>%
+  filter(abs(meanFitness) > 1,
+         count > 2)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Strong repeated phenotypes')
+
+day14All %>%
+  filter(abs(meanFitness) > 1,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Strong repeated phenotypes')
+
+day1All %>%
+  filter(abs(meanFitness) > 2,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  theme_bw()+
+  labs(title = 'Significant repeated phenotypes day 1')
+
+day3All %>%
+  filter(abs(meanFitness) > .5,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Significant repeated phenotypes')
+
+day7All %>%
+  filter(abs(meanFitness) > .5,
+         count > 1)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Significant repeated phenotypes')
+
+day14All %>%
+  filter(abs(meanFitness) > .5,
+         count > 2)%>%
+  ggplot(aes(x = selection,
+             fill = moduleLevel1))+
+  geom_bar()+
+  facet_wrap(~tissue)+
+  labs(title='Significant repeated phenotypes')

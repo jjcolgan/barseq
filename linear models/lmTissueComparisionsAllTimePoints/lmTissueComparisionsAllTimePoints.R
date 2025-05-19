@@ -381,4 +381,5 @@ fitnessScores%>%
        caption = paste0('Coef: ', sig$coef[sig$locusId=='BBR_RS17590'],
                         '\np-adj :', sig$padj[sig$locusId=='BBR_RS17590']))+
   theme_bw()
-write_tsv(output, file = 'linear models/lmTissueComparisionsAllTimePoints/linearModelRes/sigResFirstModel.tsv')
+
+write_tsv(output, file = 'linearModelRes/linearModelRes.tsv')
