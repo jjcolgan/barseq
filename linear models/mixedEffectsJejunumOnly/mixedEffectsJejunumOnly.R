@@ -127,7 +127,8 @@ for (l in 1:length(loci)) {
 modelStatsNumericDay$padj = p.adjust(modelStatsNumericDay$pvalue, method = 'fdr')
 
 sigNumericDay=modelStatsNumericDay%>%
-  filter(padj < .1)
+  filter(padj < .1,
+         abs(coef) > .5)
 
 'Model is working well'
 modelStatsNumericDay%>%
@@ -197,7 +198,8 @@ for (l in 1:length(loci)) {
 modelStatsCategoricalDay$padj = p.adjust(modelStatsCategoricalDay$pvalue, method = 'fdr')
 
 sigCategoricalDay=modelStatsCategoricalDay%>%
-  filter(padj < .1)
+  filter(padj < .1,
+         abs(coef) > .5)
 
 'Model is working well'
 modelStatsCategoricalDay%>%

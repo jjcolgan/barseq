@@ -1,3 +1,4 @@
+
 library(parallel)
 library(clusterProfiler)
 library(org.Mm.eg.db)
@@ -124,7 +125,7 @@ expression <- expression[order(rownames(expression)), , drop = FALSE]
 gene_mutant_pairs <- expand.grid(colnames(expression), colnames(fitnessScores), stringsAsFactors = FALSE)
 
 # Use parallel processing
-num_cores <- 2
+num_cores <- 4
 cor_results <- do.call(rbind, mclapply(1:nrow(gene_mutant_pairs), function(i) {
   compute_correlation(gene_mutant_pairs[i, ], method = 'spearman')
 }, mc.cores = num_cores))

@@ -54,20 +54,30 @@ annotate_modules <- function(df) {
 
 expression = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/lrtResults/sigGeneTab.tsv')
 fitnessMeta = read_tsv('fullbarseqMeta.txt')
-sigMutants = read_tsv('linear models/mixedEffectsColonOnly/sigRes.tsv')
+sigMutants=read_tsv('linear models/mixedEffectsColonOnly/sigRes.tsv')
+'maaslin2res'
+# numericDayRes = read_tsv('colonLogRatiosMaaslin2NumericDay/significant_results.tsv')
+# categoricalDayRes = read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
+#
+# numericDayRes=numericDayRes%>%
+#   filter(metadata ==  'dayNumeric',
+#          qval < .1)%>%
+#   .$feature
+#
+# categoricalDayRes=categoricalDayRes%>%
+#   filter(metadata ==  'day',
+#          qval < .1)%>%
+#   .$feature%>%
+#   unique()
+
+sigMutants = unique(sigMutants$locusId)
 annotations = read_tsv('genesWithAnvioAnnotations.tsv')
 
 keggs = annotations %>%
   select(locusId, kofamAccession, kofamFunction)%>%
   distinct()
 
-mutantsToTest=sigMutants %>%
-  rename(locusId = gene)%>%
-  as.data.frame()%>%
-  dplyr::select(locusId)%>%
-  dplyr::distinct()%>%
-  .$locusId
-
+mutantsToTest=sigMutants
 print(length(mutantsToTest))
 
 metadataRNA = read.csv('metadataRnaSeq.csv')%>%
@@ -138,7 +148,7 @@ cor_results <- do.call(rbind, mclapply(1:nrow(gene_mutant_pairs), function(i) {
 # Adjust p-values
 cor_results$padjust <- p.adjust(cor_results$P_Value, method = 'fdr')
 
-write_tsv(cor_results, 'colonicRNAClusterIntegration/spearmanRes/spearmanRes.tsv')
+write_tsv(cor_results, 'colonicRNAFitnesssIntegretion/spearmanRes/spearmanRes.tsv')
 
 # Filter significant results
 significant_results <- cor_results %>%
@@ -183,7 +193,60 @@ cor_results %>%
 
 plotIn=significant_results%>%
   arrange(desc(-log10(padjust)), Spearman_Correlation)%>%
-  head(20)
+  head(100)
+
+for (i in 1:nrow(plotIn)){
+  gene = plotIn$Gene[i]
+  mutant = plotIn$Mutant[i]
+  expressionTemp=expression%>%
+    select(gene)
+  fitnesstemp = fitnessScores%>%
+    select(mutant)
+  # p=cbind(expressionTemp, fitnesstemp) %>%
+  #   rownames_to_column('mergeCol')%>%
+  #   left_join(fitnessMeta, by = 'mergeCol')%>%
+  #   ggplot(aes(x = (.data[[gene]]),
+  #              y = .data[[mutant]],
+  #              group = tissue,
+  #              col = day))+
+  #   geom_point() +
+  #   geom_smooth(method = 'lm')+
+  #   labs(x = paste0('log2', gene), y = mutant)
+  # plot(p)
+
+  padj = significant_results%>%
+    filter(Gene == gene & Mutant == mutant)%>%
+    .$padjust
+
+  rho = significant_results%>%
+    filter(Gene == gene & Mutant == mutant)%>%
+    .$Spearman_Correlation
+
+  p=cbind(expressionTemp, fitnesstemp) %>%
+    rownames_to_column('mergeCol')%>%
+    left_join(fitnessMeta, by = 'mergeCol')%>%
+    ggplot(aes(y = (.data[[gene]]),
+               x = .data[[mutant]],
+               group = tissue,
+               col = day))+
+    geom_point() +
+    geom_smooth(method = 'lm')+
+    labs(y = paste0('log2', gene),
+         x= mutant,
+         caption = paste0('Padj: ', padj, '\nRho: ', rho))
+
+  ggsave(filename = paste0('colonicGeneExpressionFitnessScoresSpearmanIntegration/sigRes/',
+                           mutant,'_',
+                           gene,'.pdf'),
+         units = 'in',
+         height = 4.5,
+         width = 4.5,
+         p )
+}
+
+plotIn=significant_results%>%
+  arrange(desc(-log10(padjust)), Spearman_Correlation)%>%
+  tail(100)
 
 for (i in 1:nrow(plotIn)){
   gene = plotIn$Gene[i]
@@ -259,6 +322,13 @@ significant_results%>%
   summarise('number of associations' = n())%>%
   arrange(desc(`number of associations`))
 
+significant_results%>%
+  group_by(Mutant)%>%
+  summarise('number of associations' = n())%>%
+  arrange(desc(`number of associations`))%>%
+  ggplot(aes(x = `number of associations`))+
+  geom_histogram()
+
 mutants = significant_results%>%
   group_by(Mutant)%>%
   summarise(nAssoc = n())%>%
@@ -313,6 +383,12 @@ interestingGenes=significant_results%>%
   summarise('number of associations' = n())%>%
   arrange(desc(`number of associations`))%>%
   filter(`number of associations`>=10)
+
+significant_results%>%
+  group_by(Gene)%>%
+  summarise('number of associations' = n())%>%
+  ggplot(aes(x = `number of associations`))+
+  geom_histogram(bins = 100)
 
 significant_results_annotated=significant_results%>%
   filter(gene %in% interestingGenes$Gene)%>%

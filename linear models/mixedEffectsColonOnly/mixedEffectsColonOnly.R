@@ -3,6 +3,56 @@ library(lmerTest)
 library(tidyverse)
 library(car)
 
+'There is a better way to choose mutants which are interesting than trying to pick a variance filter that seems
+right. Need to add a function calculate the fold change between groups and choose the genes in a similar manner to the
+RNA seq. '
+
+run_lm = function(inputMatrix){
+  loci = rownames(inputMatrix)
+  modelStatsCategoricalDay <- data.frame(gene = character(0),
+                                         pvalue = numeric(0),
+                                         coef = numeric(length = 0),
+                                         absoluteDelta = numeric(length = 0)
+  )
+  for (l in 1:length(loci)) {
+    input <- inputMatrix[rownames(inputMatrix) == loci[l], ] %>%
+      pivot_longer(cols = c(1:ncol(.)),
+                   names_to = 'sample',
+                   values_to = 'fitness') %>%
+      merge(colonMeta, by = 'sample') %>%
+      filter(tissue != 'T0')
+
+    input$millionBases <- scale(input$millionBases)
+
+    lmer_fit <- lmer(
+      fitness ~ day + percentPerfectBarcode + millionBases + (1|day:cage),
+      data = input
+    )
+
+    coefs <- summary(lmer_fit)$coefficients
+    pvalue <- coefs[2, "Pr(>|t|)"]
+    coef = coefs[2,1]
+    absoluteDelta = calculateMeanDeltaFitness(input)
+
+    modelStatsCategoricalDay <- rbind(modelStatsCategoricalDay, data.frame(gene = loci[l],
+                                                                           pvalue = pvalue,
+                                                                           coef = coef,
+                                                                           absoluteDelta = absoluteDelta
+    ))
+
+  }
+  return(modelStatsCategoricalDay)
+}
+
+calculateMeanDeltaFitness = function(inputDf){
+  groupMeans = inputDf %>%
+    group_by(day) %>%
+    summarise(groupMean = mean(fitness))
+  absoluteDelta = abs(groupMeans$groupMean[1]-groupMeans$groupMean[2])
+  return(absoluteDelta)
+}
+
+
 get_module <- function(accession) {
   keggout <- keggGet(accession)
   if (!is.null(keggout[[1]]$BRITE)) {
@@ -13,6 +63,7 @@ get_module <- function(accession) {
   } else {
     return(c(NA_character_, NA_character_))
   }
+  return
 }
 
 annotate_modules <- function(df) {
@@ -69,12 +120,13 @@ passVarainceFilter=fitnessScores%>%
   filter(sample %in% colonMeta$sample)%>%
   group_by(locusId)%>%
   summarise(locusVariance = var(fitnessScores))%>%
-  filter(locusVariance > 0)
+  filter(locusVariance > 0.5)
 
 
 loci = passVarainceFilter$locusId
 
 lmIn = fitnessScores%>%
+  filter(locusId %in% loci)%>%
   select(-c(sysName,
             desc))%>%
   column_to_rownames('locusId')
@@ -95,7 +147,7 @@ for (l in 1:length(loci)) {
   input$millionBases = scale(input$millionBases)
   # Fit the model and capture the summary
   lmer_fit <- lmer(
-    fitness ~ dayNumeric + percentPerfectBarcode + millionBases + (1|day:cage),
+    fitness ~ dayNumeric + percentPerfectBarcode + millionBases + (1|cage),
     data = input
   )
 
@@ -121,10 +173,10 @@ modelStatsNumericDay%>%
   geom_histogram(bins = 100)+
   labs(title = 'Dist of raw p-values numeric day colon')
 
-# sigNumericDay = sigNumericDay %>%
-#   rename(locusId = gene)%>%
-#   left_join(keggs, by = 'locusId')%>%
-#   arrange(desc(-log10(padj)))
+sigNumericDay = sigNumericDay %>%
+  rename(locusId = gene)%>%
+  left_join(keggs, by = 'locusId')%>%
+  arrange(desc(-log10(padj)))
 
 for (s in unique(sigNumericDay$locusId[1:100])){
   p=fitnessScores%>%
@@ -142,77 +194,141 @@ for (s in unique(sigNumericDay$locusId[1:100])){
 }
 
 
-modelStatsCategoricalDay <- data.frame(gene = character(0), pvalue = numeric(0), coef = numeric(length = 0))
-for (l in 1:length(loci)) {
-  input <- lmIn[rownames(lmIn) == loci[l], ] %>%
-    pivot_longer(cols = c(1:ncol(.)),
-                 names_to = 'sample',
-                 values_to = 'fitness') %>%
-    merge(colonMeta, by = 'sample') %>%
-    filter(tissue != 'T0')
+day1Day3Samples=colonMeta%>%
+  filter(day %in% c('day1', 'day3'))%>%
+  .$sample
 
-  input$tissue <- as.factor(input$tissue)
-  input$millionBases <- scale(input$millionBases)
+day1Day3Fitness=lmIn[colnames(lmIn)%in% day1Day3Samples]
 
-  lmer_fit <- lmer(
-    fitness ~ day + percentPerfectBarcode + millionBases + (1|day:cage),
-    data = input
-  )
+day1Day3LmRes=run_lm(day1Day3Fitness)
 
-  coefs <- summary(lmer_fit)$coefficients
+day1Day3LmRes$padj = p.adjust(day1Day3LmRes$pvalue, method = 'fdr')
 
-  # Find rows for all 'day' levels
-  day_rows <- grep("^day", rownames(coefs))
+day1Day3LmRes%>%
+  ggplot(aes(x = pvalue))+
+  geom_histogram(bins = 50)
 
-  if (length(day_rows) > 0) {
-    for (d in day_rows) {
-      modelStatsCategoricalDay <- rbind(
-        modelStatsCategoricalDay,
-        data.frame(
-          gene   = loci[l],
-          term   = rownames(coefs)[d],
-          coef   = coefs[d, "Estimate"],
-          pvalue = coefs[d, "Pr(>|t|)"]
-        )
-      )
-    }
-  }
-}
-#write_tsv(modelStats, 'linear models/lmTissueComparisionsAllTimePoints/mixedEffectsModelRes/fitnessCageCategoricalDayAndPercentPerfectBarcodeAsPredictorMouseAsRandomModelStats.tsv')
+day1Day3LmRes%>%
+  ggplot(aes(x = absoluteDelta,
+             y = -log10(padj)))+
+  geom_point()
 
-modelStatsCategoricalDay$padj = p.adjust(modelStatsCategoricalDay$pvalue, method = 'fdr')
-
-sigCategoricalDay=modelStatsCategoricalDay%>%
+day1Day3LmRes%>%
   filter(padj < .1)
 
-'Model is working well'
-modelStatsCategoricalDay%>%
-  ggplot(aes(x = pvalue))+
-  geom_histogram(bins = 100)+
-  labs(title = 'Dist of raw p-values categorical day colon')
+sigDay1Day3= day1Day3LmRes %>%
+  filter(padj < .1,
+         absoluteDelta> .5)%>%
+  rename(locusId = gene)%>%
+  left_join(keggs, by = 'locusId')%>%
+  arrange(desc(-log10(padj)))
 
-# sigCategoricalDay = sigCategoricalDay %>%
-#   rename(locusId = gene)%>%
-#   left_join(keggs, by = 'locusId')%>%
-#   arrange(desc(-log10(padj)))
-
-for (s in unique(sigCategoricalDay$locusId[1:100])){
+for (s in sigDay1Day3$locusId){
   p=fitnessScores%>%
     pivot_longer(cols = c(4:ncol(.)), names_to = 'sample', values_to = 'fitnessScore')%>%
     left_join(colonMeta, by = 'sample')%>%
     filter(tissue != 'T0',
+           day %in% c('day1', 'day3'),
            locusId == s)%>%
     ggplot(aes(x = day, y = fitnessScore))+
     geom_boxplot(outliers = F)+
     geom_point(aes(col = day))+
     labs(title = s,
-         caption = paste0('Coef: ', sigCategoricalDay$coef[sigCategoricalDay$locusId==s],
-                          '\np-adj :', sigCategoricalDay$padj[sigCategoricalDay$locusId==s]))
+         caption = paste0('Coef: ', sigDay1Day3$coef[sigDay1Day3$locusId==s],
+                          '\np-adj :', sigDay1Day3$padj[sigDay1Day3$locusId==s]))
   plot(p)
 }
 
+day3Day7Samples=colonMeta%>%
+  filter(day %in% c('day3', 'day7'))%>%
+  .$sample
+
+day3Day7Fitness=lmIn[colnames(lmIn)%in% day3Day7Samples]
+
+day3Day7LmRes=run_lm(day3Day7Fitness)
+
+day3Day7LmRes$padj = p.adjust(day3Day7LmRes$pvalue, method = 'fdr')
+
+day3Day7LmRes%>%
+  ggplot(aes(x = pvalue))+
+  geom_histogram(bins = 50)
+
+day3Day7LmRes%>%
+  ggplot(aes(x = absoluteDelta,
+             y = -log10(padj)))+
+  geom_point()
+
+day3Day7LmRes%>%
+  filter(padj < .1)
+
+sigDay3Day7= day3Day7LmRes %>%
+  filter(padj < .1,
+         absoluteDelta > .75)%>%
+  rename(locusId = gene)%>%
+  left_join(keggs, by = 'locusId')%>%
+  arrange(desc(-log10(padj)))
+
+for (s in sigDay3Day7$locusId[1:100]){
+  p=fitnessScores%>%
+    pivot_longer(cols = c(4:ncol(.)), names_to = 'sample', values_to = 'fitnessScore')%>%
+    left_join(colonMeta, by = 'sample')%>%
+    filter(tissue != 'T0',
+           day %in% c('day3', 'day7'),
+           locusId == s)%>%
+    ggplot(aes(x = day, y = fitnessScore))+
+    geom_boxplot(outliers = F)+
+    geom_point(aes(col = day))+
+    labs(title = s,
+         caption = paste0('Coef: ', sigDay3Day7$coef[sigDay3Day7$locusId==s],
+                          '\np-adj :', sigDay3Day7$padj[sigDay3Day7$locusId==s]))
+  plot(p)
+}
+
+day7Day14Samples=colonMeta%>%
+  filter(day %in% c('day7', 'day14'))%>%
+  .$sample
+
+day7Day14Fitness=lmIn[colnames(lmIn)%in% day7Day14Samples]
+
+day7Day14LmRes=run_lm(day7Day14Fitness)
+
+day7Day14LmRes$padj = p.adjust(day7Day14LmRes$pvalue, method = 'fdr')
+
+day7Day14LmRes%>%
+  ggplot(aes(x = pvalue))+
+  geom_histogram(bins = 50)
+
+day7Day14LmRes%>%
+  filter(padj < .1)
+
+sigDay7Day14= day7Day14LmRes %>%
+  filter(padj < .1,
+         absoluteDelta > .75)%>%
+  rename(locusId = gene)%>%
+  left_join(keggs, by = 'locusId')%>%
+  arrange(desc(-log10(padj)))
+
+for (s in sigDay7Day14$locusId[1:100]){
+  p=fitnessScores%>%
+    pivot_longer(cols = c(4:ncol(.)), names_to = 'sample', values_to = 'fitnessScore')%>%
+    left_join(colonMeta, by = 'sample')%>%
+    filter(tissue != 'T0',
+           day %in% c('day7', 'day14'),
+           locusId == s)%>%
+    ggplot(aes(x = day, y = fitnessScore))+
+    geom_boxplot(outliers = F)+
+    geom_point(aes(col = day))+
+    labs(title = s,
+         caption = paste0('Coef: ', sigDay7Day14$coef[sigDay7Day14$locusId==s],
+                          '\np-adj :', sigDay7Day14$padj[sigDay7Day14$locusId==s]))
+  plot(p)
+}
+
+sigCategoricalDay=sigDay1Day3%>%
+  rbind(sigDay3Day7)%>%
+  rbind(sigDay7Day14)
 
 sigCategoricalDay %>%
-  select(-term)%>%
+  select(-absoluteDelta)%>%
   rbind(sigNumericDay)%>%
   write_tsv('linear models/mixedEffectsColonOnly/sigRes.tsv')

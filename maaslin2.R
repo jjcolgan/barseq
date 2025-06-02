@@ -9,6 +9,7 @@ library(stringr)
 get_module <- function(accession) {
   keggout <- keggGet(accession)
   if (!is.null(keggout[[1]]$BRITE)) {
+  if (!is.null(keggout[[1]]$BRITE)) {
     brite <- keggout[[1]]$BRITE
     level1 <- if (length(brite) >= 2) as.character(brite[2]) else NA_character_
     level2 <- if (length(brite) >= 3) as.character(brite[3]) else NA_character_
@@ -72,26 +73,29 @@ maaslinIn=fitnessScores %>%
 # variance filter was primarily added to only focus on samples where there
 # actually a dramatic change in abundance and reduce the number of tests
 # performed
-# Maaslin2(input = maaslinIn,
-#          input_metadata = colonMeta,
-#          transform = 'none',
-#          normalization = 'none',
-#          min_prevalence = 0,
-#          min_abundance = 0,
-#          min_variance = .5,
-#          fixed_effects = c('day','lane', 'millionBases'),
-#          random_effects = ,
-#          reference = 'day,day1;day3;day7;day14',
-#          output = 'colonLogRatiosMaaslin2'
-#
-#
-#
-# )
+Maaslin2(input = maaslinIn,
+         input_metadata = colonMeta,
+         transform = 'none',
+         normalization = 'none',
+         min_prevalence = 0,
+         min_abundance = 0,
+         min_variance = .0,
+         fixed_effects = c('day','percentPerfectBarcode', 'millionBases'),
+         random_effects =c('cage') ,
+         reference = 'day,day1;day3;day7;day14',
+         output = 'colonLogRatiosMaaslin2'
+)
+maaslinRes = read_tsv('colonLogRatiosMaaslin2/all_results.tsv')
+
+maaslinRes %>%
+  ggplot(aes(x = pval))+
+  geom_histogram(bins = 100)
+
 sigResMaaslin=read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
 
 sigResMaaslin %>%
   filter(metadata == 'day')%>%
-  filter(qval < .05)%>%
+  filter(qval < .1)%>%
   select(feature)%>%
   distinct()%>%
   nrow()
@@ -103,14 +107,19 @@ sigResMaaslin %>%
            min_prevalence = 0,
            min_abundance = 0,
            min_variance = .0,
-           fixed_effects = c('dayNumeric','lane', 'millionBases'),
-           random_effects = ,
+           fixed_effects = c('dayNumeric','percentPerfectBarcode', 'millionBases'),
+           random_effects =c('cage') ,
            reference = '',
            output = 'colonLogRatiosMaaslin2NumericDay'
  )
 
 sigResMaaslinNumericDayColon=read_tsv('colonLogRatiosMaaslin2NumericDay/significant_results.tsv')
 resMaaslinNumericDayColon=read_tsv('colonLogRatiosMaaslin2NumericDay/all_results.tsv')
+
+resMaaslinNumericDayColon%>%
+  ggplot(aes(x = pval))+
+  geom_histogram(bins = 100)
+
 sigResMaaslinNumericDayColon %>%
   filter(metadata == 'dayNumeric')%>%
   filter(qval < .1)%>%

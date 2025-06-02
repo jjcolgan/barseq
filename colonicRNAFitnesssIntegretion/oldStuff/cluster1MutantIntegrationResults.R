@@ -41,14 +41,14 @@ annotate_modules <- function(df) {
 spearmanRes = read_tsv('colonicRNAClusterIntegration/spearmanRes/spearmanRes.tsv')
 cluster1Expresssion = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/colonicKmeansResults/cluster1SigGenes.tsv')
 expression = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/lrtResults/sigGeneTab.tsv')
-fitnessMeta = read_tsv('fullbarseqMeta.txt')
-sigMutants = read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
-annotations = read_tsv('genesWithAnvioAnnotations.tsv')
+fitnessMeta = read_tsv('../../fullbarseqMeta.txt')
+sigMutants = read_tsv('../../colonLogRatiosMaaslin2/significant_results.tsv')
+annotations = read_tsv('../../genesWithAnvioAnnotations.tsv')
 
 keggs = annotations %>%
   select(locusId, kofamAccession, kofamFunction)%>%
   distinct()
-metadataRNA = read.csv('metadataRnaSeq.csv')%>%
+metadataRNA = read.csv('../../metadataRnaSeq.csv')%>%
   as.data.frame()
 
 sampleLibraryRna = metadataRNA %>%
@@ -64,7 +64,7 @@ expression= expression %>%
   t()%>%
   as.data.frame()
 
-fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
+fitnessScores = read_tsv('../../barseqAdjustedParams/fit_logratios.tab')
 colnames(fitnessScores) <- sub("setA", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("_.*", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("CO$", "Co", colnames(fitnessScores))

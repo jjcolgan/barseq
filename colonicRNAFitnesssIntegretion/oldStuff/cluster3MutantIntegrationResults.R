@@ -39,17 +39,19 @@ annotate_modules <- function(df) {
 }
 
 spearmanRes = read_tsv('colonicRNAClusterIntegration/spearmanRes/spearmanRes.tsv')
-cluster2Expresssion = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/colonicKmeansResults/cluster2SigGenes.tsv')
+cluster3Expresssion = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/colonicKmeansResults/cluster3SigGenes.tsv')
 expression = read_tsv('/Users/johnjamescolgan/Library/CloudStorage/Box-Box/b. breve/B. breve RNA seq/2025RnaAnalysis/DeSeq2/barseqColonicOutputs/lrtResults/sigGeneTab.tsv')
-fitnessMeta = read_tsv('fullbarseqMeta.txt')
-sigMutants = read_tsv('colonLogRatiosMaaslin2/significant_results.tsv')
-annotations = read_tsv('genesWithAnvioAnnotations.tsv')
+fitnessMeta = read_tsv('../../fullbarseqMeta.txt')
+sigMutants = read_tsv('../../colonLogRatiosMaaslin2/significant_results.tsv')
+annotations = read_tsv('../../genesWithAnvioAnnotations.tsv')
 
 keggs = annotations %>%
   select(locusId, kofamAccession, kofamFunction)%>%
   distinct()
 
-metadataRNA = read.csv('metadataRnaSeq.csv')%>%
+
+
+metadataRNA = read.csv('../../metadataRnaSeq.csv')%>%
   as.data.frame()
 
 sampleLibraryRna = metadataRNA %>%
@@ -65,7 +67,7 @@ expression= expression %>%
   t()%>%
   as.data.frame()
 
-fitnessScores = read_tsv('barseqAdjustedParams/fit_logratios.tab')
+fitnessScores = read_tsv('../../barseqAdjustedParams/fit_logratios.tab')
 colnames(fitnessScores) <- sub("setA", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("_.*", "", colnames(fitnessScores))
 colnames(fitnessScores) <- sub("CO$", "Co", colnames(fitnessScores))
@@ -100,7 +102,7 @@ fitnessScores = fitnessScores %>%
   column_to_rownames('mergeCol')
 
 spearmanRes=spearmanRes%>%
-  filter(Gene %in% cluster2Expresssion$SYMBOL)
+  filter(Gene %in% cluster3Expresssion$SYMBOL)
 
 sigRes=spearmanRes%>%
   filter(padjust < .1)
@@ -108,10 +110,10 @@ sigRes=spearmanRes%>%
 'In this case a positive assoication should also be decreasing in fitness as expression decreases. This
 cluster trends down over time'
 
-'30,044 mutant-gene pairs'
+'10,031 mutant-gene pairs'
 positiveRelationship = sigRes %>%
   filter(Spearman_Correlation > 0)
-'12,709negative mutant-gene pairs'
+'22,471 negative mutant-gene pairs'
 negativeRelationship = sigRes %>%
   filter(Spearman_Correlation < 0)
 
@@ -216,10 +218,10 @@ p=annotatedNegativeRelationship%>%
              fill = moduleLevel2 ))+
   geom_bar()+
   xlim(0,100)+
-  labs(title = 'Cluster 2 negative assocication mutant function')
+  labs(title = 'Cluster 3 negative mutant function')
 
 ggsave(p,
-       file = 'colonicRNAClusterIntegration/spearmanRes/cluster2NegativeAssociationMutantFunctions.pdf',
+       file = 'colonicRNAClusterIntegration/spearmanRes/cluster3NegativeAssociationMutantFunctions.pdf',
        height = 20,
        width = 20)
 
@@ -235,9 +237,9 @@ p=annotatedPositiveRelationship%>%
              fill = moduleLevel2 ))+
   geom_bar()+
   xlim(0,100)+
-  labs(title = 'Cluster 2 positive assocication mutant function')
+  labs(title = 'Cluster 3 positive mutant function')
 
 ggsave(p,
-       file = 'colonicRNAClusterIntegration/spearmanRes/cluster2PositiveAssociationMutantFunctions.pdf',
+       file = 'colonicRNAClusterIntegration/spearmanRes/cluster3PositiveAssociationMutantFunctions.pdf',
        height = 20,
        width = 20)
